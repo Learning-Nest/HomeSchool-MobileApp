@@ -39,6 +39,26 @@ class AuthRepository {
     return parseObject(data, AuthResult.fromJson);
   }
 
+  /// Asks the server to email a temporary password. The server answers the same way whether or not the address
+  /// has an account, so success here says nothing about whether an email was actually sent.
+  Future<void> forgotPassword(String email) async {
+    await _plain.post(
+      '/v1/auth/forgot-password',
+      body: <String, dynamic>{'email': email.trim()},
+      auth: AuthKind.none,
+    );
+  }
+
+  /// Sets a new password. [currentPassword] is the old password or the emailed temporary one. Every other
+  /// session is signed out and a fresh token pair for this device comes back.
+  Future<AuthResult> changePassword({required String currentPassword, required String newPassword}) async {
+    final Object? data = await _authed.post(
+      '/v1/auth/change-password',
+      body: <String, dynamic>{'current_password': currentPassword, 'new_password': newPassword},
+    );
+    return parseObject(data, AuthResult.fromJson);
+  }
+
   /// Rotates the refresh token. Only the [TokenManager] calls this (single flight).
   Future<TokenPair> refresh(String refreshToken) async {
     final Object? data = await _plain.post(

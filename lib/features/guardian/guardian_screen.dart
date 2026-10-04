@@ -38,6 +38,11 @@ class _GuardianScreenState extends ConsumerState<GuardianScreen> {
     await ref.read(guardianProvider.notifier).sendCode(normalized);
   }
 
+  Future<void> _sendEmailCode() async {
+    setState(() => _phoneError = null);
+    await ref.read(guardianProvider.notifier).sendEmailCode();
+  }
+
   Future<void> _confirm(String noticeVersion) async {
     if (!Validators.isOtp(_code.text) || !_agreed) return;
     final bool ok = await ref.read(guardianProvider.notifier).confirm(code: _code.text, noticeVersion: noticeVersion);
@@ -87,13 +92,20 @@ class _GuardianScreenState extends ConsumerState<GuardianScreen> {
             ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
             : const Text(Str.guardianSendCode),
       ),
+      const SizedBox(height: 12),
+      OutlinedButton(
+        onPressed: guardian.busy ? null : _sendEmailCode,
+        child: const Text(Str.guardianEmailCta),
+      ),
+      const SizedBox(height: 4),
+      Text(Str.guardianEmailHint, style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
     ];
   }
 
   List<Widget> _codeStep(GuardianState guardian, AsyncValue<RemoteConfig> config) {
     final String? noticeVersion = config.value?.declarationNoticeVersion;
     return <Widget>[
-      Text('${Str.guardianCodeSentTo} ${guardian.phone ?? ''}'),
+      Text('${Str.guardianCodeSentTo} ${guardian.destination ?? guardian.phone ?? ''}'),
       const SizedBox(height: 12),
       TextField(
         controller: _code,

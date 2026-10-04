@@ -8,9 +8,16 @@ void main() {
     ConfigPhase configPhase = ConfigPhase.ready,
     AuthStatus authStatus = AuthStatus.signedIn,
     bool isChildMode = false,
+    bool tempLogin = false,
     required String location,
   }) {
-    return computeRedirect(configPhase: configPhase, authStatus: authStatus, isChildMode: isChildMode, location: location);
+    return computeRedirect(
+      configPhase: configPhase,
+      authStatus: authStatus,
+      isChildMode: isChildMode,
+      tempLogin: tempLogin,
+      location: location,
+    );
   }
 
   group('config gating', () {
@@ -41,6 +48,37 @@ void main() {
       expect(decide(location: Routes.login), Routes.profiles);
       expect(decide(location: Routes.splash), Routes.profiles);
       expect(decide(isChildMode: true, location: Routes.login), Routes.child);
+    });
+  });
+
+  group('forgot password / temporary password', () {
+    test('signed out can reach the forgot-password screen but not the change-password screen', () {
+      expect(decide(authStatus: AuthStatus.signedOut, location: Routes.forgotPassword), isNull);
+      expect(decide(authStatus: AuthStatus.signedOut, location: Routes.changePassword), Routes.login);
+    });
+
+    test('after a temporary-password sign-in only the change-password screen is reachable', () {
+      expect(decide(tempLogin: true, location: Routes.changePassword), isNull);
+      for (final String route in <String>[
+        Routes.profiles,
+        Routes.login,
+        Routes.splash,
+        Routes.guardian,
+        Routes.parentDashboard,
+        Routes.child,
+      ]) {
+        expect(decide(tempLogin: true, location: route), Routes.changePassword, reason: route);
+      }
+      expect(decide(tempLogin: true, isChildMode: true, location: Routes.child), Routes.changePassword);
+    });
+
+    test('once the password is changed the change-password screen sends you on', () {
+      expect(decide(location: Routes.changePassword), Routes.profiles);
+      expect(decide(isChildMode: true, location: Routes.changePassword), Routes.child);
+    });
+
+    test('a signed-out temp flag changes nothing (sign-in comes first)', () {
+      expect(decide(authStatus: AuthStatus.signedOut, tempLogin: true, location: Routes.login), isNull);
     });
   });
 

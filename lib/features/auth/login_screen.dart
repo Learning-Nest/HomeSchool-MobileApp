@@ -69,6 +69,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       validator: (String? v) => (v == null || v.isEmpty) ? Str.invalidPassword : null,
                       onFieldSubmitted: (_) => _submit(),
                     ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: auth.busy ? null : () => context.go(Routes.forgotPassword, extra: _email.text.trim()),
+                        child: const Text(Str.forgotPasswordCta),
+                      ),
+                    ),
                     if (auth.error != null) ...<Widget>[
                       const SizedBox(height: 12),
                       Text(errorText(auth.error!), style: TextStyle(color: Theme.of(context).colorScheme.error)),

@@ -20,6 +20,12 @@ String errorText(ApiException e) {
       return Str.errorValidation;
     case 'otp_invalid':
       return Str.errorOtpInvalid;
+    case 'invalid_credentials':
+      return Str.errorInvalidCredentials;
+    case 'rate_limited':
+      return Str.errorRateLimited;
+    case 'delivery_failed':
+      return Str.errorDeliveryFailed;
     default:
       return Str.errorGeneric;
   }

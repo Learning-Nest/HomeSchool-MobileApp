@@ -13,10 +13,12 @@ class FamilyRepository {
     return parseList(data, Child.fromJson);
   }
 
-  Future<GuardianStart> startGuardianVerification(String familyId, String phone) async {
+  /// [channel] 'sms' texts the code to [phone]; 'email' emails it to the signed-in account's own address
+  /// (the server never takes an address from the request).
+  Future<GuardianStart> startGuardianVerification(String familyId, String? phone, {String channel = 'sms'}) async {
     final Object? data = await _api.post(
       '/v1/families/$familyId/guardian-verification',
-      body: <String, dynamic>{'phone': phone},
+      body: channel == 'email' ? <String, dynamic>{'channel': 'email'} : <String, dynamic>{'phone': phone},
     );
     return parseObject(data, GuardianStart.fromJson);
   }

@@ -9,6 +9,7 @@ class GuardianState {
   const GuardianState({
     this.step = GuardianStep.enterPhone,
     this.phone,
+    this.destination,
     this.verificationId,
     this.devCode,
     this.busy = false,
@@ -17,6 +18,9 @@ class GuardianState {
 
   final GuardianStep step;
   final String? phone;
+
+  /// Where the code went, for display: the typed phone number, or the masked account email ("p***@gmail.com").
+  final String? destination;
   final String? verificationId;
 
   /// Only ever set in `dev`/`nonprod`; never shown in a production build (see [Str.guardianDevCodeNotice]).
@@ -27,6 +31,7 @@ class GuardianState {
   GuardianState copyWith({
     GuardianStep? step,
     String? phone,
+    String? destination,
     String? verificationId,
     String? devCode,
     bool? busy,
@@ -36,6 +41,7 @@ class GuardianState {
     return GuardianState(
       step: step ?? this.step,
       phone: phone ?? this.phone,
+      destination: destination ?? this.destination,
       verificationId: verificationId ?? this.verificationId,
       devCode: devCode ?? this.devCode,
       busy: busy ?? this.busy,
@@ -44,7 +50,7 @@ class GuardianState {
   }
 }
 
-/// Phone -> OTP -> declaration flow (docs/client-guide.md "Guardian verification and consent").
+/// Phone (SMS) or account email -> code -> declaration flow (docs/client-guide.md "Guardian verification and consent").
 class GuardianNotifier extends Notifier<GuardianState> {
   @override
   GuardianState build() => const GuardianState();
@@ -61,6 +67,27 @@ class GuardianNotifier extends Notifier<GuardianState> {
       state = GuardianState(
         step: GuardianStep.enterCode,
         phone: normalizedPhone,
+        destination: normalizedPhone,
+        verificationId: result.verificationId,
+        devCode: result.devCode,
+      );
+      return true;
+    } on ApiException catch (e) {
+      state = state.copyWith(busy: false, error: e);
+      return false;
+    }
+  }
+
+  /// Emails the code to the signed-in account's own address (the server picks the address; the app never sends one).
+  Future<bool> sendEmailCode() async {
+    final String? familyId = _familyId;
+    if (familyId == null) return false;
+    state = state.copyWith(busy: true, clearError: true);
+    try {
+      final result = await _env.familyRepository.startGuardianVerification(familyId, null, channel: 'email');
+      state = GuardianState(
+        step: GuardianStep.enterCode,
+        destination: result.destinationHint ?? ref.read(authProvider).user?.email,
         verificationId: result.verificationId,
         devCode: result.devCode,
       );

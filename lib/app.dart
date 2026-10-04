@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:homeschooling/features/auth/change_password_screen.dart';
+import 'package:homeschooling/features/auth/forgot_password_screen.dart';
 import 'package:homeschooling/features/auth/login_screen.dart';
 import 'package:homeschooling/features/auth/signup_screen.dart';
 import 'package:homeschooling/features/child_home/child_home_screen.dart';
@@ -55,6 +57,7 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
         authStatus: ref.read(authProvider).status,
         isChildMode: ref.read(activeChildProvider).isChildMode,
         location: state.uri.path,
+        tempLogin: ref.read(authProvider).tempLogin,
       );
     },
     routes: <RouteBase>[
@@ -65,6 +68,15 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
       ),
       GoRoute(path: Routes.login, builder: (BuildContext c, GoRouterState s) => const LoginScreen()),
       GoRoute(path: Routes.signup, builder: (BuildContext c, GoRouterState s) => const SignupScreen()),
+      GoRoute(
+        path: Routes.forgotPassword,
+        builder: (BuildContext c, GoRouterState s) =>
+            ForgotPasswordScreen(initialEmail: s.extra is String ? s.extra as String : null),
+      ),
+      GoRoute(
+        path: Routes.changePassword,
+        builder: (BuildContext c, GoRouterState s) => const ChangePasswordScreen(),
+      ),
       GoRoute(path: Routes.guardian, builder: (BuildContext c, GoRouterState s) => const GuardianScreen()),
       GoRoute(path: Routes.pinVerify, builder: (BuildContext c, GoRouterState s) => const PinVerifyScreen()),
       GoRoute(path: Routes.profiles, builder: (BuildContext c, GoRouterState s) => const ProfilesScreen()),

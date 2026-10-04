@@ -16,6 +16,7 @@ class AuthState {
     this.user,
     this.memberships = const <Membership>[],
     this.pinSet = false,
+    this.tempLogin = false,
     this.busy = false,
     this.error,
   });
@@ -24,6 +25,9 @@ class AuthState {
   final UserInfo? user;
   final List<Membership> memberships;
   final bool pinSet;
+
+  /// Signed in with an emailed temporary password: the only thing the server allows is changing the password.
+  final bool tempLogin;
 
   /// True while a signup/login/logout call is in flight (drives a spinner on the submit button).
   final bool busy;
@@ -41,6 +45,7 @@ class AuthState {
     UserInfo? user,
     List<Membership>? memberships,
     bool? pinSet,
+    bool? tempLogin,
     bool? busy,
     ApiException? error,
     bool clearError = false,
@@ -50,6 +55,7 @@ class AuthState {
       user: user ?? this.user,
       memberships: memberships ?? this.memberships,
       pinSet: pinSet ?? this.pinSet,
+      tempLogin: tempLogin ?? this.tempLogin,
       busy: busy ?? this.busy,
       error: clearError ? null : (error ?? this.error),
     );
@@ -75,7 +81,13 @@ class AuthNotifier extends Notifier<AuthState> {
     }
     try {
       final Me me = await _env.authRepository.me();
-      state = AuthState(status: AuthStatus.signedIn, user: me.user, memberships: me.memberships, pinSet: me.pinSet);
+      state = AuthState(
+        status: AuthStatus.signedIn,
+        user: me.user,
+        memberships: me.memberships,
+        pinSet: me.pinSet,
+        tempLogin: me.tempLogin,
+      );
     } on ApiException {
       await _env.tokenManager.clearAll();
       state = const AuthState(status: AuthStatus.signedOut);
@@ -98,8 +110,54 @@ class AuthNotifier extends Notifier<AuthState> {
         ));
   }
 
-  Future<bool> login({required String email, required String password}) {
-    return _run(() => _env.authRepository.login(email: email, password: password));
+  /// The temporary password just used to sign in, kept in memory only so the change-password screen can
+  /// pre-fill it. Never persisted; cleared once the password is changed.
+  String? _tempPasswordInUse;
+  String? get tempPasswordInUse => _tempPasswordInUse;
+
+  Future<bool> login({required String email, required String password}) async {
+    final bool ok = await _run(() => _env.authRepository.login(email: email, password: password));
+    _tempPasswordInUse = (ok && state.tempLogin) ? password : null;
+    return ok;
+  }
+
+  /// Emails a temporary password to [email]. Returns true when the request was accepted (which does not
+  /// mean the address has an account).
+  Future<bool> forgotPassword(String email) async {
+    state = state.copyWith(busy: true, clearError: true);
+    try {
+      await _env.authRepository.forgotPassword(email);
+      state = state.copyWith(busy: false);
+      return true;
+    } on ApiException catch (e) {
+      state = state.copyWith(busy: false, error: e);
+      return false;
+    }
+  }
+
+  /// Replaces the password. [currentPassword] is the old password or the emailed temporary one.
+  Future<bool> changePassword({required String currentPassword, required String newPassword}) async {
+    state = state.copyWith(busy: true, clearError: true);
+    try {
+      final AuthResult result = await _env.authRepository.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+      await _env.tokenManager.saveSession(result.accessToken, result.refreshToken);
+      _tempPasswordInUse = null;
+      state = AuthState(
+        status: AuthStatus.signedIn,
+        user: result.user,
+        memberships: result.memberships,
+        pinSet: state.pinSet,
+        tempLogin: result.tempLogin,
+      );
+      await refreshMe(); // picks up pinSet, which the token response does not carry
+      return true;
+    } on ApiException catch (e) {
+      state = state.copyWith(busy: false, error: e);
+      return false;
+    }
   }
 
   Future<bool> _run(Future<AuthResult> Function() call) async {
@@ -112,6 +170,7 @@ class AuthNotifier extends Notifier<AuthState> {
         user: result.user,
         memberships: result.memberships,
         pinSet: false,
+        tempLogin: result.tempLogin,
         busy: false,
       );
       return true;
@@ -129,6 +188,7 @@ class AuthNotifier extends Notifier<AuthState> {
         user: me.user,
         memberships: me.memberships,
         pinSet: me.pinSet,
+        tempLogin: me.tempLogin,
       );
     } on ApiException catch (e) {
       state = state.copyWith(error: e);

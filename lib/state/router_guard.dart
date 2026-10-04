@@ -8,6 +8,8 @@ class Routes {
   static const String updateRequired = '/update-required';
   static const String login = '/login';
   static const String signup = '/signup';
+  static const String forgotPassword = '/forgot-password';
+  static const String changePassword = '/change-password';
   static const String profiles = '/profiles';
   static const String addChild = '/profiles/add';
   static const String guardian = '/guardian';
@@ -30,6 +32,7 @@ String? computeRedirect({
   required AuthStatus authStatus,
   required bool isChildMode,
   required String location,
+  bool tempLogin = false,
 }) {
   if (configPhase == ConfigPhase.loading) {
     return location == Routes.splash ? null : Routes.splash;
@@ -43,14 +46,22 @@ String? computeRedirect({
   }
 
   if (authStatus == AuthStatus.signedOut) {
-    final bool onAuthScreen = location == Routes.login || location == Routes.signup;
+    final bool onAuthScreen =
+        location == Routes.login || location == Routes.signup || location == Routes.forgotPassword;
     return onAuthScreen ? null : Routes.login;
   }
 
-  // Signed in from here on.
+  // Signed in from here on. After signing in with an emailed temporary password the only reachable screen is
+  // the one that sets a new password (the server enforces the same rule: 403 password_change_required).
+  if (tempLogin) {
+    return location == Routes.changePassword ? null : Routes.changePassword;
+  }
+
   final bool onEntryScreen = location == Routes.splash ||
       location == Routes.login ||
       location == Routes.signup ||
+      location == Routes.forgotPassword ||
+      location == Routes.changePassword ||
       location == Routes.updateRequired;
   if (onEntryScreen) {
     return isChildMode ? Routes.child : Routes.profiles;

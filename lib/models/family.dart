@@ -40,10 +40,22 @@ class ConsentRecord {
 }
 
 class GuardianStart {
-  const GuardianStart({required this.verificationId, required this.expiresIn, this.devCode});
+  const GuardianStart({
+    required this.verificationId,
+    required this.expiresIn,
+    this.devCode,
+    this.channel = 'sms',
+    this.destinationHint,
+  });
 
   final String verificationId;
   final int expiresIn;
+
+  /// 'sms' or 'email'.
+  final String channel;
+
+  /// Masked place the code went to, e.g. "p***@gmail.com" or "******5678".
+  final String? destinationHint;
 
   /// Only present when the server runs in `dev`. Never shown in a prod build.
   final String? devCode;
@@ -52,5 +64,7 @@ class GuardianStart {
         verificationId: reqString(j, 'verification_id'),
         expiresIn: optInt(j, 'expires_in') ?? 600,
         devCode: optString(j, 'dev_code'),
+        channel: optString(j, 'channel') ?? 'sms',
+        destinationHint: optString(j, 'destination_hint'),
       );
 }

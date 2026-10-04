@@ -36,6 +36,9 @@ class Str {
   static const String errorConflict = 'This was changed somewhere else. Reloading the latest version.';
   static const String errorEmailTaken = 'That email is already registered. Try signing in instead.';
   static const String errorValidation = 'Please check the highlighted fields.';
+  static const String errorInvalidCredentials = 'Email or password is incorrect.';
+  static const String errorRateLimited = 'Too many attempts. Please wait a few minutes and try again.';
+  static const String errorDeliveryFailed = "We couldn't send that message. Please try again in a moment.";
   static const String emptyGeneric = 'Nothing here yet.';
 
   // ---- Auth ----
@@ -56,6 +59,29 @@ class Str {
   static const String invalidFullName = 'Enter your name';
   static const String signupWelcome = 'A few details, then we will set up your family.';
 
+  // ---- Forgot password / temporary password ----
+  static const String forgotPasswordCta = 'Forgot password?';
+  static const String forgotPasswordTitle = 'Reset your password';
+  static const String forgotPasswordIntro = "Enter your account email and we'll send you a temporary password.";
+  static const String forgotPasswordSend = 'Email me a temporary password';
+  static const String forgotPasswordSentTitle = 'Check your email';
+  static const String forgotPasswordSentBody =
+      'If that email has an account, a temporary password is on its way. It only works for a short time. '
+      "Sign in with it and you'll be asked to choose a new password.";
+  static const String backToSignIn = 'Back to sign in';
+  static const String changePasswordTitle = 'Choose a new password';
+  static const String changePasswordIntro =
+      'You signed in with a temporary password. Choose a new password to continue.';
+  static const String temporaryPasswordLabel = 'Temporary password';
+  static const String newPasswordLabel = 'New password';
+  static const String confirmPasswordLabel = 'Confirm new password';
+  static const String passwordsDoNotMatch = "The two passwords don't match";
+  static const String passwordMustDiffer = 'Choose a password different from the temporary one';
+  static const String changePasswordCta = 'Save new password';
+  static const String errorTempPasswordWrong =
+      'That temporary password is not correct or has expired. Go back to sign in and request a new one.';
+  static const String signOut = 'Sign out';
+
   // ---- Guardian verification (DPDP) ----
   static const String guardianTitle = 'Verify you are a parent or guardian';
   static const String guardianIntro =
@@ -66,6 +92,8 @@ class Str {
   static const String guardianSendCode = 'Send code';
   static const String guardianCodeLabel = 'Enter the 6-digit code';
   static const String guardianResend = 'Resend code';
+  static const String guardianEmailCta = 'Email me a code instead';
+  static const String guardianEmailHint = "We'll send the 6-digit code to the email address you signed up with.";
   static const String guardianCodeSentTo = 'Code sent to';
   static const String guardianInvalidPhone = 'Enter a valid mobile number';
   static const String guardianInvalidOtp = 'Enter the 6-digit code';
