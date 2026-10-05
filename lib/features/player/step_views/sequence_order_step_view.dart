@@ -52,12 +52,6 @@ class _SequenceOrderStepViewState extends State<SequenceOrderStepView> {
     _report();
   }
 
-  void _onReorder(int oldIndex, int newIndex) {
-    // ReorderableListView reports the slot *before* removal, so a downward move is one too far.
-    final int target = newIndex > oldIndex ? newIndex - 1 : newIndex;
-    _move(oldIndex, target);
-  }
-
   @override
   Widget build(BuildContext context) {
     final KidPalette p = KidPalette.of(context);
@@ -72,7 +66,8 @@ class _SequenceOrderStepViewState extends State<SequenceOrderStepView> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           buildDefaultDragHandles: false,
-          onReorder: _onReorder,
+          // onReorderItem already adjusts newIndex for the removed item.
+          onReorderItem: _move,
           proxyDecorator: (Widget child, int index, Animation<double> animation) => Material(
             color: Colors.transparent,
             elevation: 8,

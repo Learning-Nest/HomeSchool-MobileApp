@@ -14,7 +14,11 @@ void main() {
 
   Future<void> press(WidgetTester tester, List<String> keys) async {
     for (final String k in keys) {
-      await tester.tap(find.byKey(Key('pad-$k')));
+      final Finder key = find.byKey(Key('pad-$k'));
+      // The pad is taller than the 600px test screen: scroll the key into view first, as a child would.
+      await tester.ensureVisible(key);
+      await tester.pump();
+      await tester.tap(key);
       await tester.pump();
     }
   }
