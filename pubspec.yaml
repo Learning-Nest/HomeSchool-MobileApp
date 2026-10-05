@@ -2,7 +2,7 @@ name: homeschooling
 description: HomeSchooling - an Android-first app for homeschooling families in India. Parents plan, children play, parents see progress.
 publish_to: none
 # Keep in sync with lib/core/app_version.dart (test/app_version_test.dart enforces it).
-version: 0.1.0+4
+version: 0.1.0+6
 
 environment:
   sdk: ^3.12.0
