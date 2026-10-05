@@ -60,6 +60,11 @@ void main() {
     when(() => testEnv.auth.login(email: any(named: 'email'), password: any(named: 'password')))
         .thenThrow(const ServerException('unauthorized', '', status: 401));
 
+    // Let the start-up session restore finish first. Otherwise it lands after the failed login and resets the
+    // state, wiping the error this test is looking for (the mock throws instantly, so the race is test-only).
+    container.read(authProvider);
+    await Future<void>.delayed(Duration.zero);
+
     final bool ok = await container.read(authProvider.notifier).login(email: 'a@b.com', password: 'wrong');
 
     expect(ok, isFalse);

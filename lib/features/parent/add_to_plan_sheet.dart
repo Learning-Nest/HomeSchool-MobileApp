@@ -23,20 +23,26 @@ class AddedToPlan {
 const int kPlanAheadDays = 14;
 
 /// Opens the "Add to plan" sheet for [activity]. Resolves to what was added, or null if dismissed.
-Future<AddedToPlan?> showAddToPlanSheet(BuildContext context, ActivitySummary activity) {
+///
+/// Pass [child] to plan for that child only (the library already shows one child's activities); otherwise the
+/// parent picks a child when the family has more than one.
+Future<AddedToPlan?> showAddToPlanSheet(BuildContext context, ActivitySummary activity, {Child? child}) {
   return showModalBottomSheet<AddedToPlan>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
-    builder: (BuildContext ctx) => AddToPlanSheet(activity: activity),
+    builder: (BuildContext ctx) => AddToPlanSheet(activity: activity, child: child),
   );
 }
 
 /// Pick a child and a day, then add the activity to that child's plan.
 class AddToPlanSheet extends ConsumerStatefulWidget {
-  const AddToPlanSheet({super.key, required this.activity});
+  const AddToPlanSheet({super.key, required this.activity, this.child});
 
   final ActivitySummary activity;
+
+  /// When set, the activity is planned for this child and there is no child picker.
+  final Child? child;
 
   @override
   ConsumerState<AddToPlanSheet> createState() => _AddToPlanSheetState();
@@ -50,7 +56,7 @@ class _AddToPlanSheetState extends ConsumerState<AddToPlanSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Child> children = ref.watch(familyProvider).children;
+    final List<Child> children = widget.child != null ? <Child>[widget.child!] : ref.watch(familyProvider).children;
     final Child? viewed = ref.watch(parentViewedChildProvider);
     final TextTheme text = Theme.of(context).textTheme;
     final DateTime today = dateOnly(DateTime.now());
@@ -62,7 +68,7 @@ class _AddToPlanSheetState extends ConsumerState<AddToPlanSheet> {
       );
     }
 
-    final String selectedId = _childId ?? viewed?.id ?? children.first.id;
+    final String selectedId = widget.child?.id ?? _childId ?? viewed?.id ?? children.first.id;
     final Child selected = children.firstWhere((Child c) => c.id == selectedId, orElse: () => children.first);
 
     return SafeArea(
@@ -77,7 +83,10 @@ class _AddToPlanSheetState extends ConsumerState<AddToPlanSheet> {
               const SizedBox(height: 4),
               Text('${subjectEmoji(widget.activity.subjectCode)}  ${widget.activity.title}', style: text.titleMedium),
               const SizedBox(height: 20),
-              if (children.length > 1) ...<Widget>[
+              if (widget.child != null) ...<Widget>[
+                Text(Str.planAddForChild(widget.child!.displayName), style: text.labelLarge),
+                const SizedBox(height: 20),
+              ] else if (children.length > 1) ...<Widget>[
                 Text(Str.planAddFor, style: text.labelLarge),
                 const SizedBox(height: 8),
                 Wrap(

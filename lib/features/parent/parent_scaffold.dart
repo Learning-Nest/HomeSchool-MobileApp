@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:homeschooling/features/common/theme_picker.dart';
 import 'package:homeschooling/models/child.dart';
 import 'package:homeschooling/state/family_providers.dart';
 import 'package:homeschooling/state/parent_view_providers.dart';
 import 'package:homeschooling/state/router_guard.dart';
+import 'package:homeschooling/state/theme_providers.dart';
 import 'package:homeschooling/strings.dart';
 
 const List<_Tab> _tabs = <_Tab>[
@@ -49,6 +51,18 @@ class ParentScaffold extends ConsumerWidget {
           onPressed: () => context.go(Routes.profiles),
         ),
         actions: <Widget>[
+          // Always one tap away on every parent screen (it is also in Settings).
+          IconButton(
+            key: const ValueKey<String>('parent-theme-button'),
+            icon: const Icon(Icons.palette_outlined),
+            tooltip: Str.themeButtonTooltip,
+            onPressed: () => showThemePicker(
+              context,
+              title: Str.themeChooseParent,
+              selectedId: ref.read(themeSettingsProvider).parentId,
+              onSelected: (String id) => ref.read(themeSettingsProvider.notifier).setParent(id),
+            ),
+          ),
           if (family.children.length > 1)
             PopupMenuButton<Child>(
               icon: const Icon(Icons.face),

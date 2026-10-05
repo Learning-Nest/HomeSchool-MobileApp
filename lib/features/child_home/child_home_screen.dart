@@ -7,6 +7,7 @@ import 'package:homeschooling/features/common/child_themed.dart';
 import 'package:homeschooling/features/common/state_views.dart';
 import 'package:homeschooling/features/common/subject_emoji.dart';
 import 'package:homeschooling/features/common/theme_picker.dart';
+import 'package:homeschooling/features/player/step_views/kid_widgets.dart';
 import 'package:homeschooling/models/child.dart';
 import 'package:homeschooling/models/plan.dart';
 import 'package:homeschooling/state/child_mode_providers.dart';
@@ -52,7 +53,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
             actions: <Widget>[
               IconButton(
                 key: const ValueKey<String>('child-theme-button'),
-                icon: Text(option.emoji, style: const TextStyle(fontSize: 26)),
+                icon: const Icon(Icons.palette_rounded),
                 tooltip: Str.themeButtonTooltip,
                 onPressed: child == null ? null : () => _pickTheme(context, ref, child.id, option.id),
               ),
@@ -63,7 +64,28 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
               ),
             ],
           ),
-          body: SafeArea(child: _body(active)),
+          body: SafeArea(
+            child: Column(
+              children: <Widget>[
+                // A clear, labelled button: the small icon in the app bar is easy to miss for a child.
+                if (child != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: FilledButton.tonalIcon(
+                        key: const ValueKey<String>('child-theme-bar'),
+                        style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+                        onPressed: () => _pickTheme(context, ref, child.id, option.id),
+                        icon: Text(option.emoji, style: const TextStyle(fontSize: 22)),
+                        label: Text(Str.themeCurrent(option.name)),
+                      ),
+                    ),
+                  ),
+                Expanded(child: _body(active)),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -141,44 +163,57 @@ class _ActivityCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final bool done = item.isCompleted;
     final KidPalette p = KidPalette.of(context);
-    final Color tile = p.tile(index);
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      color: done ? p.paper.withValues(alpha: 0.85) : p.paper,
+      color: p.paper,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: done ? null : () => _start(context, ref),
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Row(
-            children: <Widget>[
-              Container(
-                width: 64,
-                height: 64,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(color: tile, shape: BoxShape.circle),
-                child: done
-                    ? Icon(Icons.check_rounded, size: 36, color: p.tileText)
-                    : Text(subjectEmoji(item.activity.subjectCode), style: const TextStyle(fontSize: 32)),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(item.activity.title, style: Theme.of(context).textTheme.titleMedium),
-                    Text('${item.activity.durationMin} min'),
-                  ],
+          // Dark themes have light default text: OnPaper keeps the card readable on its light background.
+          child: OnPaper(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Container(
+                  width: 56,
+                  height: 56,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(color: p.tile(index), shape: BoxShape.circle),
+                  child: done
+                      ? Icon(Icons.check_rounded, size: 34, color: p.tileText)
+                      : Text(subjectEmoji(item.activity.subjectCode), style: const TextStyle(fontSize: 28)),
                 ),
-              ),
-              if (done)
-                Text(p.cheer, style: const TextStyle(fontSize: 30))
-              else
-                FilledButton(
-                  onPressed: () => _start(context, ref),
-                  child: Text(item.status == 'in_progress' ? Str.continueActivity : Str.startActivity),
+                const SizedBox(width: 14),
+                // The title column gets all the remaining width; the button sits under the text (not beside it)
+                // so a long title never gets squeezed into a sliver on a narrow phone.
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        item.activity.title,
+                        key: ValueKey<String>('activity-title-${item.id}'),
+                        // Theme.of(context) here is the screen's (light-on-dark) theme, not OnPaper's, so set the ink explicitly.
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(color: p.tileText, fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 2),
+                      Text('${item.activity.durationMin} min'),
+                      const SizedBox(height: 10),
+                      if (done)
+                        const Text('\u2B50 ${Str.activityDone}', style: TextStyle(fontWeight: FontWeight.w800))
+                      else
+                        FilledButton(
+                          key: ValueKey<String>('activity-start-${item.id}'),
+                          onPressed: () => _start(context, ref),
+                          child: Text(item.status == 'in_progress' ? Str.continueActivity : Str.startActivity),
+                        ),
+                    ],
+                  ),
                 ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

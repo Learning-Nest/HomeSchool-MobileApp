@@ -255,6 +255,22 @@ class Str {
   static const String planAddDay = 'Which day?';
   static const String planAddConfirm = 'Add to plan';
   static const String planViewPlanner = 'View planner';
+  static const String libraryNew = 'New';
+  static const String libraryNoResults = 'No activities found for this subject at this level yet.';
+  static const String libraryLoadFailedSubjects = "Couldn't load the subjects. Pull down to try again.";
+
+  static String libraryHeader(String childName, String? level) =>
+      level == null ? 'For $childName · all levels' : 'For $childName · level $level';
+
+  static String libraryNoLevel(String childName) =>
+      "$childName has no level set yet, so activities from every level are shown. Set a level in $childName's profile to narrow them.";
+
+  static String libraryPickSubject(String childName) => 'Pick a subject to see the activities for $childName.';
+
+  static String libraryPlanned(String dayLabel) => 'Planned $dayLabel';
+
+  static String planAddForChild(String childName) => 'For $childName';
+
   static const String planAddFailed = "Couldn't add that activity. Please try again.";
   static const String planNoChild = 'Add a child profile first, then you can plan activities.';
 
@@ -299,6 +315,8 @@ class Str {
   static const String themeChooseKid = 'Pick your favourite look!';
   static const String themeChooseParent = 'Pick the look for parent screens';
   static const String themeButtonTooltip = 'Change theme';
+
+  static String themeCurrent(String name) => 'Theme: $name';
   static const String consentMediaCapture = 'Photos and audio in activities';
   static const String consentAiPersonalization = 'Personalised recommendations';
   static const String consentProductAnalytics = 'Product analytics';

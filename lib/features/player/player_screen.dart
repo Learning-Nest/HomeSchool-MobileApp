@@ -5,6 +5,7 @@ import 'package:homeschooling/features/common/child_themed.dart';
 import 'package:homeschooling/features/common/state_views.dart';
 import 'package:homeschooling/features/player/step_views/capture_step_view.dart';
 import 'package:homeschooling/features/player/step_views/instruction_step_view.dart';
+import 'package:homeschooling/features/player/step_views/kid_widgets.dart';
 import 'package:homeschooling/features/player/step_views/match_pairs_step_view.dart';
 import 'package:homeschooling/features/player/step_views/media_prompt_step_view.dart';
 import 'package:homeschooling/features/player/step_views/multi_choice_step_view.dart';
@@ -118,7 +119,7 @@ class PlayerScreen extends ConsumerWidget {
                     color: KidPalette.of(context).paper,
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(20),
-                      child: _stepBody(context, ref, step, state),
+                      child: OnPaper(child: _stepBody(context, ref, step, state)),
                     ),
                   ),
                 ),
@@ -294,7 +295,7 @@ class _CompletionView extends ConsumerWidget {
               children: <Widget>[
                 Text(p.mascot, style: const TextStyle(fontSize: 96)),
                 const SizedBox(height: 8),
-                Text('${p.cheer} ${Str.resultTitle} ${p.cheer}', textAlign: TextAlign.center, style: text.headlineMedium),
+                Text(p.cheer, textAlign: TextAlign.center, style: text.headlineMedium),
                 if (score != null) ...<Widget>[
                   const SizedBox(height: 12),
                   _Stars(score: score),

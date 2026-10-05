@@ -1,6 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:homeschooling/theme/kid_palette.dart';
 
+/// Makes everything inside readable on the light "paper" cards used in child mode. The dark themes (Space) have
+/// light default text, which is invisible on paper, so text and icons here get the dark palette colour.
+/// Wrap any content that sits on [KidPalette.paper] in this.
+class OnPaper extends StatelessWidget {
+  const OnPaper({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color ink = KidPalette.of(context).tileText;
+    final ThemeData theme = Theme.of(context);
+    return Theme(
+      data: theme.copyWith(
+        textTheme: theme.textTheme.apply(bodyColor: ink, displayColor: ink),
+        iconTheme: theme.iconTheme.copyWith(color: ink),
+      ),
+      child: DefaultTextStyle.merge(style: TextStyle(color: ink), child: child),
+    );
+  }
+}
+
 /// The question or instruction at the top of an exercise: big, bold and left-aligned.
 class KidPrompt extends StatelessWidget {
   const KidPrompt(this.text, {super.key});
