@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:homeschooling/core/app_version.dart';
 import 'package:homeschooling/core/config.dart';
+import 'package:homeschooling/features/common/theme_picker.dart';
 import 'package:homeschooling/features/parent/parent_scaffold.dart';
 import 'package:homeschooling/features/pin/pin_set_screen.dart';
 import 'package:homeschooling/models/child.dart';
@@ -11,7 +12,9 @@ import 'package:homeschooling/state/auth_providers.dart';
 import 'package:homeschooling/state/config_providers.dart';
 import 'package:homeschooling/state/family_providers.dart';
 import 'package:homeschooling/state/router_guard.dart';
+import 'package:homeschooling/state/theme_providers.dart';
 import 'package:homeschooling/strings.dart';
+import 'package:homeschooling/theme/theme_options.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -44,6 +47,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final FamilyState family = ref.watch(familyProvider);
     final AsyncValue<RemoteConfig> config = ref.watch(remoteConfigProvider);
+    final ThemeOption parentTheme = ref.watch(themeSettingsProvider.select((ThemeSettings s) => s.parent));
 
     return ParentScaffold(
       currentPath: '/parent/settings',
@@ -58,6 +62,18 @@ class SettingsScreen extends ConsumerWidget {
               leading: const Icon(Icons.bug_report_outlined),
             ),
           const Divider(),
+          ListTile(
+            key: const ValueKey<String>('settings-theme'),
+            title: const Text(Str.settingsTheme),
+            subtitle: Text('${parentTheme.emoji}  ${parentTheme.name}'),
+            leading: const Icon(Icons.palette_outlined),
+            onTap: () => showThemePicker(
+              context,
+              title: Str.themeChooseParent,
+              selectedId: parentTheme.id,
+              onSelected: (String id) => ref.read(themeSettingsProvider.notifier).setParent(id),
+            ),
+          ),
           ListTile(
             title: const Text(Str.settingsChangePin),
             leading: const Icon(Icons.pin_outlined),

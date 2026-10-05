@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:homeschooling/core/dates.dart';
+import 'package:homeschooling/features/common/subject_emoji.dart';
+import 'package:homeschooling/features/parent/add_to_plan_sheet.dart';
 import 'package:homeschooling/features/common/chip_picker.dart';
 import 'package:homeschooling/features/common/state_views.dart';
 import 'package:homeschooling/features/parent/parent_scaffold.dart';
@@ -36,6 +40,23 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     _query.dispose();
     _scroll.dispose();
     super.dispose();
+  }
+
+  Future<void> _addToPlan(ActivitySummary activity) async {
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final GoRouter router = GoRouter.of(context);
+    final AddedToPlan? added = await showAddToPlanSheet(context, activity);
+    if (added == null) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            Str.planAdded(added.activityTitle, added.child.displayName, friendlyDate(added.date, dateOnly(DateTime.now()))),
+          ),
+          action: SnackBarAction(label: Str.planViewPlanner, onPressed: () => router.go('/parent/planner')),
+        ),
+      );
   }
 
   @override
@@ -110,11 +131,9 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                                 );
                               }
                               final ActivitySummary a = state.results[index];
-                              return Card(
-                                child: ListTile(
-                                  title: Text(a.title),
-                                  subtitle: Text('${a.levelRange} · ${a.durationMin} min · ${a.subjectCode}'),
-                                ),
+                              return _ActivityCard(
+                                activity: a,
+                                onAdd: () => _addToPlan(a),
                               );
                             },
                           ),
@@ -124,3 +143,44 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     );
   }
 }
+
+class _ActivityCard extends StatelessWidget {
+  const _ActivityCard({required this.activity, required this.onAdd});
+
+  final ActivitySummary activity;
+  final VoidCallback onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme text = Theme.of(context).textTheme;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+        child: Row(
+          children: <Widget>[
+            Text(subjectEmoji(activity.subjectCode), style: const TextStyle(fontSize: 32)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(activity.title, style: text.titleMedium),
+                  const SizedBox(height: 2),
+                  Text('${activity.levelRange} · ${activity.durationMin} min · ${activity.subjectCode}', style: text.bodySmall),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            FilledButton.tonalIcon(
+              key: ValueKey<String>('add-to-plan-${activity.id}'),
+              onPressed: onAdd,
+              icon: const Icon(Icons.add),
+              label: const Text(Str.catalogueAddToPlan),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

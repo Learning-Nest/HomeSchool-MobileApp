@@ -3,15 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:homeschooling/core/auth_tokens.dart';
 import 'package:homeschooling/core/dates.dart';
+import 'package:homeschooling/features/common/child_themed.dart';
 import 'package:homeschooling/features/common/state_views.dart';
+import 'package:homeschooling/features/common/subject_emoji.dart';
+import 'package:homeschooling/features/common/theme_picker.dart';
 import 'package:homeschooling/models/child.dart';
 import 'package:homeschooling/models/plan.dart';
 import 'package:homeschooling/state/child_mode_providers.dart';
 import 'package:homeschooling/state/plan_providers.dart';
 import 'package:homeschooling/state/router_guard.dart';
 import 'package:homeschooling/state/session_player_providers.dart';
+import 'package:homeschooling/state/theme_providers.dart';
 import 'package:homeschooling/strings.dart';
-import 'package:homeschooling/theme.dart';
+import 'package:homeschooling/theme/kid_palette.dart';
+import 'package:homeschooling/theme/theme_options.dart';
 
 /// The child's whole world while the device is in child mode: today's plan and nothing else — no settings,
 /// no navigation to parent screens. Leaving requires a grown-up's PIN (see `_switchProfile`).
@@ -35,15 +40,22 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
       Future<void>.microtask(() => ref.read(todayProvider.notifier).load(child.id, auth: AuthKind.child));
     }
 
+    final ThemeOption option = ref.watch(themeSettingsProvider.select((ThemeSettings t) => t.forChild(child?.id)));
+
     return PopScope(
       canPop: false,
-      child: Theme(
-        data: AppTheme.child(Theme.of(context).brightness),
+      child: ChildThemed(
         child: Scaffold(
           appBar: AppBar(
             title: Text(child == null ? Str.appName : Str.greeting(dayPart(DateTime.now()), child.displayName)),
             automaticallyImplyLeading: false,
             actions: <Widget>[
+              IconButton(
+                key: const ValueKey<String>('child-theme-button'),
+                icon: Text(option.emoji, style: const TextStyle(fontSize: 26)),
+                tooltip: Str.themeButtonTooltip,
+                onPressed: child == null ? null : () => _pickTheme(context, ref, child.id, option.id),
+              ),
               IconButton(
                 icon: const Icon(Icons.swap_horiz),
                 tooltip: Str.backToParent,
@@ -57,6 +69,15 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
     );
   }
 
+  void _pickTheme(BuildContext context, WidgetRef ref, String childId, String currentId) {
+    showThemePicker(
+      context,
+      title: Str.themeChooseKid,
+      selectedId: currentId,
+      onSelected: (String id) => ref.read(themeSettingsProvider.notifier).setChild(childId, id),
+    );
+  }
+
   Widget _body(ActiveChildState active) {
     if (active.busy || active.child == null) return const LoadingView();
     final TodayState today = ref.watch(todayProvider);
@@ -67,7 +88,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
         onRetry: () => ref.read(todayProvider.notifier).load(active.child!.id, auth: AuthKind.child),
       );
     }
-    if (today.items.isEmpty) return const EmptyView(message: Str.noActivitiesToday, icon: Icons.wb_sunny_outlined);
+    if (today.items.isEmpty) return const _EmptyToday();
 
     return RefreshIndicator(
       onRefresh: () => ref.read(todayProvider.notifier).load(active.child!.id, auth: AuthKind.child),
@@ -75,7 +96,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
         padding: const EdgeInsets.all(20),
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: today.items.length,
-        itemBuilder: (BuildContext context, int index) => _ActivityCard(item: today.items[index]),
+        itemBuilder: (BuildContext context, int index) => _ActivityCard(item: today.items[index], index: index),
       ),
     );
   }
@@ -88,40 +109,77 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
   }
 }
 
+class _EmptyToday extends StatelessWidget {
+  const _EmptyToday();
+
+  @override
+  Widget build(BuildContext context) {
+    final KidPalette p = KidPalette.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(p.mascot, style: const TextStyle(fontSize: 72)),
+            const SizedBox(height: 12),
+            Text(Str.noActivitiesToday, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleLarge),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ActivityCard extends ConsumerWidget {
-  const _ActivityCard({required this.item});
+  const _ActivityCard({required this.item, required this.index});
 
   final PlanItem item;
+  final int index;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bool done = item.isCompleted;
+    final KidPalette p = KidPalette.of(context);
+    final Color tile = p.tile(index);
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: <Widget>[
-            CircleAvatar(
-              radius: 26,
-              child: Icon(done ? Icons.check : Icons.play_arrow, size: 26),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(item.activity.title, style: Theme.of(context).textTheme.titleMedium),
-                  Text('${item.activity.durationMin} min'),
-                ],
+      color: done ? p.paper.withValues(alpha: 0.85) : p.paper,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: done ? null : () => _start(context, ref),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: 64,
+                height: 64,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: tile, shape: BoxShape.circle),
+                child: done
+                    ? Icon(Icons.check_rounded, size: 36, color: p.tileText)
+                    : Text(subjectEmoji(item.activity.subjectCode), style: const TextStyle(fontSize: 32)),
               ),
-            ),
-            if (!done)
-              FilledButton(
-                onPressed: () => _start(context, ref),
-                child: Text(item.status == 'in_progress' ? Str.continueActivity : Str.startActivity),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(item.activity.title, style: Theme.of(context).textTheme.titleMedium),
+                    Text('${item.activity.durationMin} min'),
+                  ],
+                ),
               ),
-          ],
+              if (done)
+                Text(p.cheer, style: const TextStyle(fontSize: 30))
+              else
+                FilledButton(
+                  onPressed: () => _start(context, ref),
+                  child: Text(item.status == 'in_progress' ? Str.continueActivity : Str.startActivity),
+                ),
+            ],
+          ),
         ),
       ),
     );

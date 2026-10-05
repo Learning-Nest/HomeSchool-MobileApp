@@ -25,8 +25,10 @@ import 'package:homeschooling/state/child_mode_providers.dart';
 import 'package:homeschooling/state/config_providers.dart';
 import 'package:homeschooling/state/environment.dart';
 import 'package:homeschooling/state/router_guard.dart';
+import 'package:homeschooling/state/theme_providers.dart';
 import 'package:homeschooling/strings.dart';
 import 'package:homeschooling/theme.dart';
+import 'package:homeschooling/theme/theme_options.dart';
 
 /// Bridges Riverpod state changes into a [Listenable] so `GoRouter(refreshListenable: ...)` re-evaluates
 /// `redirect` whenever auth, config or child-mode state changes — not only when the user navigates.
@@ -125,11 +127,12 @@ class _HomeSchoolingAppState extends ConsumerState<HomeSchoolingApp> {
   @override
   Widget build(BuildContext context) {
     final GoRouter router = ref.watch(routerProvider);
+    final ThemeOption parentTheme = ref.watch(themeSettingsProvider.select((ThemeSettings s) => s.parent));
     return MaterialApp.router(
       title: Str.appName,
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
+      theme: AppTheme.parentLight(parentTheme),
+      darkTheme: AppTheme.parentDark(parentTheme),
       routerConfig: router,
     );
   }

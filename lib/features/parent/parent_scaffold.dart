@@ -9,8 +9,8 @@ import 'package:homeschooling/strings.dart';
 
 const List<_Tab> _tabs = <_Tab>[
   _Tab('/parent/dashboard', Icons.today_outlined, Str.dashboardTitle),
-  _Tab('/parent/planner', Icons.calendar_month_outlined, Str.plannerTitle),
   _Tab('/parent/catalogue', Icons.menu_book_outlined, Str.catalogueTitle),
+  _Tab('/parent/planner', Icons.calendar_month_outlined, Str.plannerTitle),
   _Tab('/parent/progress', Icons.insights_outlined, Str.progressTitle),
   _Tab('/parent/reviews', Icons.rate_review_outlined, Str.reviewsTitle),
   _Tab('/parent/settings', Icons.settings_outlined, Str.settingsTitle),

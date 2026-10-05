@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:homeschooling/features/player/step_views/kid_widgets.dart';
 import 'package:homeschooling/models/steps.dart';
 import 'package:homeschooling/strings.dart';
+import 'package:homeschooling/theme/kid_palette.dart';
 
 class ShortTextStepView extends StatefulWidget {
   const ShortTextStepView({super.key, required this.step, required this.answer, required this.onChanged});
@@ -24,16 +26,32 @@ class _ShortTextStepViewState extends State<ShortTextStepView> {
 
   @override
   Widget build(BuildContext context) {
+    final KidPalette p = KidPalette.of(context);
+    final OutlineInputBorder border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(24),
+      borderSide: BorderSide(color: p.tile(2), width: 3),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Text(widget.step.prompt, style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: 20),
+        KidPrompt(widget.step.prompt),
+        const SizedBox(height: 16),
         TextField(
           controller: _controller,
           maxLength: widget.step.maxLen,
           maxLines: 3,
-          decoration: const InputDecoration(hintText: Str.shortTextHint, border: OutlineInputBorder()),
+          minLines: 2,
+          textCapitalization: TextCapitalization.sentences,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(color: p.tileText, fontWeight: FontWeight.w700),
+          decoration: InputDecoration(
+            hintText: Str.shortTextHint,
+            filled: true,
+            fillColor: p.paper,
+            counterStyle: TextStyle(color: p.tileText),
+            border: border,
+            enabledBorder: border,
+            focusedBorder: border.copyWith(borderSide: BorderSide(color: p.tile(1), width: 4)),
+          ),
           onChanged: widget.onChanged,
         ),
       ],

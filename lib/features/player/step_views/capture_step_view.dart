@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:homeschooling/features/player/step_views/kid_widgets.dart';
 import 'package:homeschooling/models/steps.dart';
 import 'package:homeschooling/strings.dart';
+import 'package:homeschooling/theme/kid_palette.dart';
 
 /// `audio_record` / `photo_evidence`: MVP does not record anything in-app. The child does the activity with
 /// a grown-up and taps Done (or Skip, if [CaptureStep.optional]). No answer is sent for this step.
@@ -13,21 +15,27 @@ class CaptureStepView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final KidPalette p = KidPalette.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Icon(
-          step.type == 'audio_record' ? Icons.mic_none : Icons.photo_camera_outlined,
-          size: 56,
-          color: Theme.of(context).colorScheme.primary,
+        Center(
+          child: Container(
+            width: 120,
+            height: 120,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(shape: BoxShape.circle, color: p.tile(step.type == 'audio_record' ? 1 : 2)),
+            child: Text(step.type == 'audio_record' ? '🎤' : '📸', style: const TextStyle(fontSize: 60)),
+          ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         if (step.prompt.isNotEmpty) ...<Widget>[
-          Text(step.prompt, style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
+          KidPrompt(step.prompt),
           const SizedBox(height: 8),
         ],
-        const Text(Str.captureDoneWithGrownUp, textAlign: TextAlign.center),
-        const SizedBox(height: 20),
+        const KidHint(Str.captureDoneWithGrownUp),
+        const SizedBox(height: 24),
         FilledButton(onPressed: onDone, child: const Text(Str.done)),
         if (step.optional) ...<Widget>[
           const SizedBox(height: 8),

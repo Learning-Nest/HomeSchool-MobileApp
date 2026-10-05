@@ -78,7 +78,7 @@ class _DashboardBody extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 OutlinedButton(onPressed: () => context.go('/parent/progress'), child: const Text(Str.viewFullProgress)),
-                FilledButton(onPressed: () => context.go('/parent/planner'), child: const Text(Str.planTomorrow)),
+                FilledButton(onPressed: () => context.go('/parent/catalogue'), child: const Text(Str.planTomorrow)),
               ],
             ),
           ],

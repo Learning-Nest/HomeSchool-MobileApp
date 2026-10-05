@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:homeschooling/features/player/step_views/kid_widgets.dart';
 import 'package:homeschooling/models/steps.dart';
 
 class SingleChoiceStepView extends StatelessWidget {
@@ -15,18 +16,16 @@ class SingleChoiceStepView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Text(step.prompt, style: Theme.of(context).textTheme.headlineSmall),
+        KidPrompt(step.prompt),
         const SizedBox(height: 20),
-        for (final Choice option in step.options)
+        for (int i = 0; i < step.options.length; i++)
           Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: OutlinedButton(
-              onPressed: () => onChanged(option.id),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: answer == option.id ? Theme.of(context).colorScheme.primaryContainer : null,
-              ),
-              child: Text(option.label, style: Theme.of(context).textTheme.titleMedium),
+            padding: const EdgeInsets.only(bottom: 12),
+            child: KidChoiceButton(
+              label: step.options[i].label,
+              index: i,
+              selected: answer == step.options[i].id,
+              onTap: () => onChanged(step.options[i].id),
             ),
           ),
       ],

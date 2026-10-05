@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:homeschooling/core/dates.dart';
 import 'package:homeschooling/features/common/state_views.dart';
 import 'package:homeschooling/features/parent/parent_scaffold.dart';
-import 'package:homeschooling/models/activity.dart';
+import 'package:go_router/go_router.dart';
+import 'package:homeschooling/features/common/subject_emoji.dart';
 import 'package:homeschooling/models/child.dart';
 import 'package:homeschooling/models/plan.dart';
-import 'package:homeschooling/state/catalogue_providers.dart';
 import 'package:homeschooling/state/parent_view_providers.dart';
 import 'package:homeschooling/state/plan_providers.dart';
 import 'package:homeschooling/strings.dart';
@@ -38,17 +38,16 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
     return ParentScaffold(
       currentPath: '/parent/planner',
       title: Str.plannerTitle,
-      actions: <Widget>[
-        IconButton(
-          icon: const Icon(Icons.add),
-          tooltip: Str.plannerAddActivity,
-          onPressed: child == null ? null : () => _openAddSheet(context, child, _selectedDay),
-        ),
-      ],
       body: child == null
           ? const EmptyView(message: Str.emptyGeneric, icon: Icons.face_outlined)
           : Column(
               children: <Widget>[
+                _WeekHeader(
+                  weekStart: weekStart,
+                  onPrev: () => _goToWeek(addDays(weekStart, -7)),
+                  onNext: () => _goToWeek(addDays(weekStart, 7)),
+                  onThisWeek: () => setState(() => _selectedDay = dateOnly(DateTime.now())),
+                ),
                 _WeekStrip(
                   weekStart: weekStart,
                   selected: _selectedDay,
@@ -63,18 +62,57 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                               week.error!,
                               onRetry: () => ref.read(weekPlanProvider.notifier).loadWeek(child.id, _selectedDay),
                             )
-                          : _DayList(day: _selectedDay, items: week.itemsOn(_selectedDay)),
+                          : _DayList(day: _selectedDay, items: week.itemsOn(_selectedDay), weekIsEmpty: week.items.isEmpty),
                 ),
               ],
             ),
     );
   }
 
-  void _openAddSheet(BuildContext context, Child child, DateTime day) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (BuildContext ctx) => _AddActivitySheet(childId: child.id, date: day),
+  /// Moves to another week. Lands on today if that week is the current one, otherwise on its Monday.
+  void _goToWeek(DateTime weekStart) {
+    final DateTime today = dateOnly(DateTime.now());
+    setState(() => _selectedDay = isSameDay(weekStartOf(today), weekStart) ? today : weekStart);
+  }
+}
+
+class _WeekHeader extends StatelessWidget {
+  const _WeekHeader({required this.weekStart, required this.onPrev, required this.onNext, required this.onThisWeek});
+
+  final DateTime weekStart;
+  final VoidCallback onPrev;
+  final VoidCallback onNext;
+  final VoidCallback onThisWeek;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isCurrentWeek = isSameDay(weekStart, weekStartOf(DateTime.now()));
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+      child: Row(
+        children: <Widget>[
+          IconButton(
+            key: const ValueKey<String>('planner-prev-week'),
+            icon: const Icon(Icons.chevron_left),
+            tooltip: Str.plannerPrevWeek,
+            onPressed: onPrev,
+          ),
+          Expanded(
+            child: Column(
+              children: <Widget>[
+                Text(weekRangeLabel(weekStart), style: Theme.of(context).textTheme.titleMedium),
+                if (!isCurrentWeek) TextButton(onPressed: onThisWeek, child: const Text(Str.plannerThisWeek)),
+              ],
+            ),
+          ),
+          IconButton(
+            key: const ValueKey<String>('planner-next-week'),
+            icon: const Icon(Icons.chevron_right),
+            tooltip: Str.plannerNextWeek,
+            onPressed: onNext,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -115,15 +153,28 @@ class _WeekStrip extends StatelessWidget {
   }
 }
 
+/// The plan for one day. Remove-only: adding happens in the Activity library.
 class _DayList extends ConsumerWidget {
-  const _DayList({required this.day, required this.items});
+  const _DayList({required this.day, required this.items, required this.weekIsEmpty});
 
   final DateTime day;
   final List<PlanItem> items;
+  final bool weekIsEmpty;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (items.isEmpty) return const EmptyView(message: Str.plannerEmptyDay, icon: Icons.event_available_outlined);
+    if (items.isEmpty) {
+      return EmptyView(
+        message: weekIsEmpty ? Str.plannerEmptyWeek : Str.plannerEmptyDay,
+        icon: Icons.event_available_outlined,
+        action: FilledButton.icon(
+          key: const ValueKey<String>('planner-open-library'),
+          onPressed: () => context.go('/parent/catalogue'),
+          icon: const Icon(Icons.menu_book_outlined),
+          label: const Text(Str.plannerOpenLibrary),
+        ),
+      );
+    }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: items.length,
@@ -131,107 +182,42 @@ class _DayList extends ConsumerWidget {
         final PlanItem item = items[index];
         return Card(
           child: ListTile(
+            leading: Text(subjectEmoji(item.activity.subjectCode), style: const TextStyle(fontSize: 28)),
             title: Text(item.activity.title),
-            subtitle: Text('${item.activity.durationMin} min · ${item.status}'),
-            trailing: item.canEdit
-                ? PopupMenuButton<String>(
-                    onSelected: (String value) async {
-                      if (value == 'reschedule') await _reschedule(context, ref, item);
-                      if (value == 'skip') await ref.read(weekPlanProvider.notifier).skip(item);
-                      if (value == 'delete' && item.canDelete) await ref.read(weekPlanProvider.notifier).deleteItem(item.id);
-                    },
-                    itemBuilder: (BuildContext ctx) => <PopupMenuEntry<String>>[
-                      const PopupMenuItem<String>(value: 'reschedule', child: Text(Str.plannerReschedule)),
-                      const PopupMenuItem<String>(value: 'skip', child: Text(Str.plannerSkip)),
-                      if (item.canDelete) const PopupMenuItem<String>(value: 'delete', child: Text(Str.plannerRemove)),
-                    ],
+            subtitle: Text('${item.activity.durationMin} min · ${Str.planStatus(item.status)}'),
+            trailing: item.canDelete
+                ? IconButton(
+                    key: ValueKey<String>('planner-remove-${item.id}'),
+                    icon: const Icon(Icons.delete_outline),
+                    tooltip: Str.plannerRemove,
+                    onPressed: () => _remove(context, ref, item),
                   )
-                : null,
+                : Tooltip(message: Str.plannerCannotRemove, child: Icon(item.isCompleted ? Icons.check_circle : Icons.lock_outline)),
           ),
         );
       },
     );
   }
 
-  Future<void> _reschedule(BuildContext context, WidgetRef ref, PlanItem item) async {
-    final DateTime? picked = await showDatePicker(
+  Future<void> _remove(BuildContext context, WidgetRef ref, PlanItem item) async {
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final bool? confirmed = await showDialog<bool>(
       context: context,
-      initialDate: item.scheduledDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-    if (picked != null) await ref.read(weekPlanProvider.notifier).reschedule(item, picked);
-  }
-}
-
-class _AddActivitySheet extends ConsumerStatefulWidget {
-  const _AddActivitySheet({required this.childId, required this.date});
-
-  final String childId;
-  final DateTime date;
-
-  @override
-  ConsumerState<_AddActivitySheet> createState() => _AddActivitySheetState();
-}
-
-class _AddActivitySheetState extends ConsumerState<_AddActivitySheet> {
-  final TextEditingController _query = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    Future<void>.microtask(() => ref.read(catalogueProvider.notifier).search());
-  }
-
-  @override
-  void dispose() {
-    _query.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final CatalogueState catalogue = ref.watch(catalogueProvider);
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.75,
-        child: Column(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: TextField(
-                controller: _query,
-                decoration: const InputDecoration(labelText: Str.catalogueSearchHint, prefixIcon: Icon(Icons.search)),
-                onSubmitted: (String q) => ref.read(catalogueProvider.notifier).search(query: q),
-              ),
-            ),
-            Expanded(
-              child: catalogue.loading
-                  ? const LoadingView()
-                  : ListView.builder(
-                      itemCount: catalogue.results.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        final ActivitySummary a = catalogue.results[index];
-                        return ListTile(
-                          title: Text(a.title),
-                          subtitle: Text('${a.durationMin} min · ${a.levelRange}'),
-                          trailing: TextButton(
-                            onPressed: () async {
-                              final bool ok = await ref
-                                  .read(weekPlanProvider.notifier)
-                                  .addItem(childId: widget.childId, activityId: a.id, date: widget.date);
-                              if (ok && context.mounted) Navigator.of(context).pop();
-                            },
-                            child: const Text(Str.add),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
+      builder: (BuildContext ctx) => AlertDialog(
+        title: const Text(Str.plannerRemoveConfirmTitle),
+        content: Text('${item.activity.title}\n\n${Str.plannerRemoveConfirmBody}'),
+        actions: <Widget>[
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text(Str.cancel)),
+          FilledButton(
+            key: const ValueKey<String>('planner-remove-confirm'),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text(Str.plannerRemove),
+          ),
+        ],
       ),
     );
+    if (confirmed != true) return;
+    final bool ok = await ref.read(weekPlanProvider.notifier).deleteItem(item.id);
+    if (!ok) messenger.showSnackBar(const SnackBar(content: Text(Str.errorGeneric)));
   }
 }

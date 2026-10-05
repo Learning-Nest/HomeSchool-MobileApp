@@ -185,8 +185,14 @@ class Str {
   static const String timerPause = 'Pause';
   static const String timerResume = 'Resume';
   static const String matchLeftHint = 'Tap one on the left, then its match on the right';
-  static const String sequenceHint = 'Drag to put them in order';
+  static const String matchUndoHint = 'Tap a matched card to undo it';
+  static const String sequenceHint = 'Hold the handle and drag, or use the arrows, to put them in order';
+  static const String sequenceMoveUp = 'Move up';
+  static const String sequenceMoveDown = 'Move down';
+  static const String multiChoiceHint = 'Pick all the right answers';
   static const String numericInputHint = 'Type a number';
+  static const String numericPlaceholder = 'Tap the numbers';
+  static const String numberPadBackspace = 'Delete last digit';
   static const String shortTextHint = 'Type your answer';
   static const String resultTitle = 'Great work!';
   static const String resultReviewPending = 'A grown-up will look at this with you soon.';
@@ -210,6 +216,27 @@ class Str {
   static const String plannerRemove = 'Remove from plan';
   static const String plannerEmptyDay = 'Nothing planned this day.';
   static const String plannerPickDate = 'Move to';
+  static const String plannerOpenLibrary = 'Open the Activity library';
+  static const String plannerEmptyWeek = 'Nothing is planned yet. Open the Activity library to add activities.';
+  static const String plannerRemoveConfirmTitle = 'Remove from plan?';
+  static const String plannerRemoveConfirmBody = 'This activity will be taken off the plan. You can add it again from the Activity library.';
+  static const String plannerPrevWeek = 'Previous week';
+  static const String plannerNextWeek = 'Next week';
+  static const String plannerThisWeek = 'This week';
+  static const String plannerCannotRemove = 'Already started or finished';
+
+  static String planStatus(String status) {
+    switch (status) {
+      case 'in_progress':
+        return 'Started';
+      case 'completed':
+        return 'Done';
+      case 'skipped':
+        return 'Skipped';
+      default:
+        return 'Planned';
+    }
+  }
 
   // ---- Parent: catalogue ----
   static const String catalogueTitle = 'Activity library';
@@ -223,6 +250,16 @@ class Str {
   static const String catalogueAddToPlan = 'Add to plan';
   static const String catalogueLoadMore = 'Load more';
   static const String catalogueNoResults = 'No activities match your filters.';
+  static const String planAddSheetTitle = 'Add to plan';
+  static const String planAddFor = 'Who is it for?';
+  static const String planAddDay = 'Which day?';
+  static const String planAddConfirm = 'Add to plan';
+  static const String planViewPlanner = 'View planner';
+  static const String planAddFailed = "Couldn't add that activity. Please try again.";
+  static const String planNoChild = 'Add a child profile first, then you can plan activities.';
+
+  static String planAdded(String title, String childName, String dayLabel) =>
+      'Added "$title" for $childName on $dayLabel';
 
   // ---- Parent: progress / mastery ----
   static const String progressTitle = 'Progress';
@@ -256,6 +293,12 @@ class Str {
   static const String settingsAppVersion = 'App version';
   static const String settingsEnvironment = 'Environment';
   static const String settingsDeleteChild = 'Delete a child profile';
+  static const String settingsAppearance = 'Appearance';
+  static const String settingsTheme = 'App theme (parent screens)';
+  static const String themeTitle = 'Choose a theme';
+  static const String themeChooseKid = 'Pick your favourite look!';
+  static const String themeChooseParent = 'Pick the look for parent screens';
+  static const String themeButtonTooltip = 'Change theme';
   static const String consentMediaCapture = 'Photos and audio in activities';
   static const String consentAiPersonalization = 'Personalised recommendations';
   static const String consentProductAnalytics = 'Product analytics';

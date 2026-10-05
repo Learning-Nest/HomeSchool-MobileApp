@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:homeschooling/models/steps.dart';
+import 'package:homeschooling/theme/kid_palette.dart';
 
 /// MVP has no real media pipeline yet: shows the caption/alt text as a placeholder card instead of an image.
 class MediaPromptStepView extends StatelessWidget {
@@ -9,6 +10,7 @@ class MediaPromptStepView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final KidPalette p = KidPalette.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -16,14 +18,19 @@ class MediaPromptStepView extends StatelessWidget {
           height: 180,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(colors: <Color>[p.tile(0), p.tile(2)]),
+            borderRadius: BorderRadius.circular(28),
           ),
           alignment: Alignment.center,
-          child: Icon(Icons.image_outlined, size: 48, color: Theme.of(context).colorScheme.outline),
+          child: const Text('🖼️', style: TextStyle(fontSize: 64)),
         ),
         const SizedBox(height: 16),
-        if (step.caption.isNotEmpty) Text(step.caption, style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
+        if (step.caption.isNotEmpty)
+          Text(
+            step.caption,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+            textAlign: TextAlign.center,
+          ),
       ],
     );
   }

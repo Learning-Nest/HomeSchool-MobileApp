@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:homeschooling/features/player/step_views/kid_widgets.dart';
 import 'package:homeschooling/models/steps.dart';
 import 'package:homeschooling/strings.dart';
+import 'package:homeschooling/theme/kid_palette.dart';
 
-/// `match_pairs`: tap one on the left, then its match on the right. Answer is a list of `[left_id, right_id]`.
+/// `match_pairs`: tap one on the left, then its match on the right. A finished pair gets its own colour and
+/// number on both cards; tap either card of a pair to undo it. Answer is a list of `[left_id, right_id]`.
 class MatchPairsStepView extends StatefulWidget {
   const MatchPairsStepView({super.key, required this.step, required this.answer, required this.onChanged});
 
@@ -19,20 +22,35 @@ class MatchPairsStepView extends StatefulWidget {
 class _MatchPairsStepViewState extends State<MatchPairsStepView> {
   String? _selectedLeft;
 
-  Set<String> get _matchedLeft => widget.answer.map((List<String> p) => p[0]).toSet();
-  Set<String> get _matchedRight => widget.answer.map((List<String> p) => p[1]).toSet();
+  int _pairOfLeft(String id) => widget.answer.indexWhere((List<String> p) => p[0] == id);
+
+  int _pairOfRight(String id) => widget.answer.indexWhere((List<String> p) => p[1] == id);
+
+  void _undo(int pairIndex) {
+    final List<List<String>> next = List<List<String>>.of(widget.answer)..removeAt(pairIndex);
+    setState(() => _selectedLeft = null);
+    widget.onChanged(next);
+  }
 
   void _tapLeft(String id) {
-    if (_matchedLeft.contains(id)) return;
+    final int pair = _pairOfLeft(id);
+    if (pair >= 0) {
+      _undo(pair);
+      return;
+    }
     setState(() => _selectedLeft = _selectedLeft == id ? null : id);
   }
 
   void _tapRight(String id) {
+    final int pair = _pairOfRight(id);
+    if (pair >= 0) {
+      _undo(pair);
+      return;
+    }
     final String? left = _selectedLeft;
-    if (left == null || _matchedRight.contains(id)) return;
-    final List<List<String>> next = <List<String>>[...widget.answer, <String>[left, id]];
+    if (left == null) return;
     setState(() => _selectedLeft = null);
-    widget.onChanged(next);
+    widget.onChanged(<List<String>>[...widget.answer, <String>[left, id]]);
   }
 
   @override
@@ -40,10 +58,10 @@ class _MatchPairsStepViewState extends State<MatchPairsStepView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Text(widget.step.prompt, style: Theme.of(context).textTheme.headlineSmall),
+        KidPrompt(widget.step.prompt),
         const SizedBox(height: 4),
-        Text(Str.matchLeftHint, style: Theme.of(context).textTheme.bodySmall),
-        const SizedBox(height: 12),
+        const KidHint(Str.matchLeftHint),
+        const SizedBox(height: 16),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -51,24 +69,24 @@ class _MatchPairsStepViewState extends State<MatchPairsStepView> {
               child: Column(
                 children: <Widget>[
                   for (final Choice c in widget.step.left)
-                    _Tile(
+                    _MatchTile(
                       label: c.label,
+                      pair: _pairOfLeft(c.id),
                       selected: _selectedLeft == c.id,
-                      matched: _matchedLeft.contains(c.id),
                       onTap: () => _tapLeft(c.id),
                     ),
                 ],
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 children: <Widget>[
                   for (final Choice c in widget.step.right)
-                    _Tile(
+                    _MatchTile(
                       label: c.label,
+                      pair: _pairOfRight(c.id),
                       selected: false,
-                      matched: _matchedRight.contains(c.id),
                       onTap: () => _tapRight(c.id),
                     ),
                 ],
@@ -81,28 +99,63 @@ class _MatchPairsStepViewState extends State<MatchPairsStepView> {
   }
 }
 
-class _Tile extends StatelessWidget {
-  const _Tile({required this.label, required this.selected, required this.matched, required this.onTap});
+class _MatchTile extends StatelessWidget {
+  const _MatchTile({required this.label, required this.pair, required this.selected, required this.onTap});
 
   final String label;
+
+  /// Index of the finished pair this card belongs to, or -1.
+  final int pair;
   final bool selected;
-  final bool matched;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme scheme = Theme.of(context).colorScheme;
+    final KidPalette p = KidPalette.of(context);
+    final bool matched = pair >= 0;
+    final Color accent = matched ? p.tile(pair) : Theme.of(context).colorScheme.primary;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Material(
-        color: matched ? scheme.secondaryContainer : (selected ? scheme.primaryContainer : scheme.surfaceContainerHighest),
-        borderRadius: BorderRadius.circular(10),
+        color: matched ? accent : (selected ? accent.withValues(alpha: 0.35) : p.paper),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: accent, width: matched || selected ? 4 : 2),
+        ),
         child: InkWell(
-          borderRadius: BorderRadius.circular(10),
-          onTap: matched ? null : onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-            child: Text(label, textAlign: TextAlign.center),
+          customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 72),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+              child: Row(
+                children: <Widget>[
+                  if (matched)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: CircleAvatar(
+                        radius: 14,
+                        backgroundColor: p.paper,
+                        child: Text(
+                          '${pair + 1}',
+                          style: TextStyle(color: p.tileText, fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                    ),
+                  Expanded(
+                    child: Text(
+                      label,
+                      textAlign: matched ? TextAlign.start : TextAlign.center,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(color: p.tileText, fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
