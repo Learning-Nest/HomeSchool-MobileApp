@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:homeschooling/core/dates.dart';
-import 'package:homeschooling/features/common/chip_picker.dart';
 import 'package:homeschooling/features/common/state_views.dart';
 import 'package:homeschooling/features/common/subject_emoji.dart';
 import 'package:homeschooling/features/parent/add_to_plan_sheet.dart';
@@ -114,12 +113,19 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: subjects.when(
-                      data: (List<Subject> options) => SingleChoiceChips(
-                        options: <ChipOption>[
-                          for (final Subject s in options) ChipOption(s.code, '${subjectEmoji(s.code)} ${s.name}'),
+                      data: (List<Subject> options) => DropdownMenu<String>(
+                        key: const ValueKey<String>('library-subject'),
+                        expandedInsets: EdgeInsets.zero,
+                        label: const Text(Str.librarySubjectLabel),
+                        hintText: Str.librarySubjectHint,
+                        initialSelection: _subject,
+                        requestFocusOnTap: false,
+                        enableSearch: false,
+                        dropdownMenuEntries: <DropdownMenuEntry<String>>[
+                          for (final Subject s in options)
+                            DropdownMenuEntry<String>(value: s.code, label: '${subjectEmoji(s.code)} ${s.name}'),
                         ],
-                        selected: _subject,
-                        onChanged: _chooseSubject,
+                        onSelected: _chooseSubject,
                       ),
                       loading: () => const Padding(
                         padding: EdgeInsets.symmetric(vertical: 12),

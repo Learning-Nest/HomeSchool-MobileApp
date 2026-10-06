@@ -265,6 +265,8 @@ class Str {
   static String libraryNoLevel(String childName) =>
       "$childName has no level set yet, so activities from every level are shown. Set a level in $childName's profile to narrow them.";
 
+  static const String librarySubjectLabel = 'Subject';
+  static const String librarySubjectHint = 'Choose a subject';
   static String libraryPickSubject(String childName) => 'Pick a subject to see the activities for $childName.';
 
   static String libraryPlanned(String dayLabel) => 'Planned $dayLabel';

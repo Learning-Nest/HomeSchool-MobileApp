@@ -114,7 +114,10 @@ void main() {
   }
 
   Future<void> pickMaths(WidgetTester tester) async {
-    await tester.tap(find.text('🔢 Maths'));
+    // The subject is a dropdown: open it, then choose the entry in the menu.
+    await tester.tap(find.byKey(const ValueKey<String>('library-subject')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('🔢 Maths').last);
     await tester.pumpAndSettle();
   }
 
