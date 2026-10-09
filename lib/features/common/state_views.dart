@@ -18,6 +18,8 @@ String errorText(ApiException e) {
       return Str.errorEmailTaken;
     case 'validation_error':
       return Str.errorValidation;
+    case 'pin_already_set':
+      return Str.errorPinAlreadySet;
     case 'otp_invalid':
       return Str.errorOtpInvalid;
     case 'invalid_credentials':

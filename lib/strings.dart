@@ -36,6 +36,8 @@ class Str {
   static const String errorConflict = 'This was changed somewhere else. Reloading the latest version.';
   static const String errorEmailTaken = 'That email is already registered. Try signing in instead.';
   static const String errorValidation = 'Please check the highlighted fields.';
+  static const String errorPinAlreadySet =
+      'A parent PIN is already set for this account. Enter it, or choose “Forgot PIN?” to set a new one.';
   static const String errorInvalidCredentials = 'Email or password is incorrect.';
   static const String errorRateLimited = 'Too many attempts. Please wait a few minutes and try again.';
   static const String errorDeliveryFailed = "We couldn't send that message. Please try again in a moment.";

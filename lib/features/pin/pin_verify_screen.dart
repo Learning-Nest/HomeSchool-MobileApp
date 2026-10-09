@@ -48,6 +48,11 @@ class _PinVerifyScreenState extends ConsumerState<PinVerifyScreen> {
     );
     if (!mounted) return;
     if (pin == null) {
+      if (ref.read(authProvider).pinSet) {
+        // The server said a PIN already exists (and the app has refreshed that): stay here and ask for it.
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(Str.errorPinAlreadySet)));
+        return;
+      }
       // The parent backed out of setting a PIN: behave like backing out of verification.
       context.pop();
       return;

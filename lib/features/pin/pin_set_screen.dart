@@ -45,6 +45,15 @@ class _PinSetScreenState extends ConsumerState<PinSetScreen> {
       // Hand the just-chosen PIN back to the caller (PinVerifyScreen uses it to auto-verify after a
       // first-time setup, so the parent doesn't have to immediately re-type the PIN they just chose).
       if (context.canPop()) context.pop(_pin.text);
+      return;
+    }
+    // The server already has a PIN for this account but the app did not know (an earlier attempt that did not
+    // finish, or another device). Refresh what the app knows and go back to PIN entry instead of leaving the
+    // parent on a form that cannot succeed.
+    if (!widget.isChange && ref.read(pinProvider).error?.code == 'pin_already_set') {
+      await ref.read(authProvider.notifier).refreshMe();
+      if (!mounted) return;
+      if (ref.read(authProvider).pinSet) await Navigator.of(context).maybePop();
     }
   }
 
