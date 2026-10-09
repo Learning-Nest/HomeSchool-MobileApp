@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:homeschooling/features/player/step_views/step_picture.dart';
 import 'package:homeschooling/models/steps.dart';
 import 'package:homeschooling/theme/kid_palette.dart';
 
@@ -13,7 +14,10 @@ class InstructionStepView extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Text(p.mascot, style: const TextStyle(fontSize: 64)),
+        if (step.image?.usable == true)
+          StepPicture(image: step.image, maxHeight: 240)
+        else
+          Text(p.mascot, style: const TextStyle(fontSize: 64)),
         const SizedBox(height: 12),
         Text(
           step.text,

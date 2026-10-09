@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:homeschooling/features/player/step_views/kid_widgets.dart';
+import 'package:homeschooling/features/player/step_views/step_picture.dart';
+import 'package:homeschooling/models/images.dart';
 import 'package:homeschooling/models/steps.dart';
 import 'package:homeschooling/strings.dart';
 import 'package:homeschooling/theme/kid_palette.dart';
@@ -58,7 +60,7 @@ class _MatchPairsStepViewState extends State<MatchPairsStepView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        KidPrompt(widget.step.prompt),
+        KidPrompt(widget.step.prompt, image: widget.step.image),
         const SizedBox(height: 4),
         const KidHint(Str.matchLeftHint),
         const SizedBox(height: 16),
@@ -71,6 +73,7 @@ class _MatchPairsStepViewState extends State<MatchPairsStepView> {
                   for (final Choice c in widget.step.left)
                     _MatchTile(
                       label: c.label,
+                      image: c.image,
                       pair: _pairOfLeft(c.id),
                       selected: _selectedLeft == c.id,
                       onTap: () => _tapLeft(c.id),
@@ -85,6 +88,7 @@ class _MatchPairsStepViewState extends State<MatchPairsStepView> {
                   for (final Choice c in widget.step.right)
                     _MatchTile(
                       label: c.label,
+                      image: c.image,
                       pair: _pairOfRight(c.id),
                       selected: false,
                       onTap: () => _tapRight(c.id),
@@ -100,9 +104,10 @@ class _MatchPairsStepViewState extends State<MatchPairsStepView> {
 }
 
 class _MatchTile extends StatelessWidget {
-  const _MatchTile({required this.label, required this.pair, required this.selected, required this.onTap});
+  const _MatchTile({required this.label, required this.pair, required this.selected, required this.onTap, this.image});
 
   final String label;
+  final ImageRef? image;
 
   /// Index of the finished pair this card belongs to, or -1.
   final int pair;
@@ -144,13 +149,23 @@ class _MatchTile extends StatelessWidget {
                       ),
                     ),
                   Expanded(
-                    child: Text(
-                      label,
-                      textAlign: matched ? TextAlign.start : TextAlign.center,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(color: p.tileText, fontWeight: FontWeight.w800),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: matched ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+                      children: <Widget>[
+                        if (image?.usable == true) ...<Widget>[
+                          StepPicture(image: image, maxHeight: 96, radius: 12, showAltWhenMissing: false),
+                          const SizedBox(height: 6),
+                        ],
+                        Text(
+                          label,
+                          textAlign: matched ? TextAlign.start : TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(color: p.tileText, fontWeight: FontWeight.w800),
+                        ),
+                      ],
                     ),
                   ),
                 ],

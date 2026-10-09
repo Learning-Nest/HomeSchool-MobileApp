@@ -34,7 +34,7 @@ class _ShortTextStepViewState extends State<ShortTextStepView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        KidPrompt(widget.step.prompt),
+        KidPrompt(widget.step.prompt, image: widget.step.image),
         const SizedBox(height: 16),
         TextField(
           controller: _controller,

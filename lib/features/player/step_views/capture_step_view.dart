@@ -31,7 +31,7 @@ class CaptureStepView extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         if (step.prompt.isNotEmpty) ...<Widget>[
-          KidPrompt(step.prompt),
+          KidPrompt(step.prompt, image: step.image),
           const SizedBox(height: 8),
         ],
         const KidHint(Str.captureDoneWithGrownUp),

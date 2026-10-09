@@ -19,7 +19,7 @@ class ReflectionStepView extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        KidPrompt(step.prompt.isEmpty ? Str.reflectionPrompt : step.prompt),
+        KidPrompt(step.prompt.isEmpty ? Str.reflectionPrompt : step.prompt, image: step.image),
         const SizedBox(height: 24),
         Wrap(
           spacing: 14,

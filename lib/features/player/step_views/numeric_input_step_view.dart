@@ -44,7 +44,7 @@ class _NumericInputStepViewState extends State<NumericInputStepView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        KidPrompt(widget.step.prompt),
+        KidPrompt(widget.step.prompt, image: widget.step.image),
         const SizedBox(height: 4),
         const KidHint(Str.numericInputHint),
         const SizedBox(height: 16),

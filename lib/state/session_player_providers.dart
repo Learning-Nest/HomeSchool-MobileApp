@@ -9,6 +9,7 @@ import 'package:homeschooling/models/activity.dart';
 import 'package:homeschooling/models/session.dart';
 import 'package:homeschooling/models/steps.dart';
 import 'package:homeschooling/state/environment.dart';
+import 'package:homeschooling/state/image_providers.dart';
 import 'package:homeschooling/state/pending_queue_providers.dart';
 import 'package:homeschooling/state/plan_providers.dart';
 
@@ -129,6 +130,9 @@ class PlayerNotifier extends Notifier<PlayerState?> {
       final detail = await _env.catalogueRepository.detail(activityId, auth: _auth);
       if (state?.activityId != activityId) return;
       state = state?.copyWith(definition: detail.definition, summary: detail.summary, loading: false);
+      // Pictures download in the background while the child reads the first exercise; each screen shows its
+      // picture as soon as it is there, and the words work without it.
+      unawaited(ref.read(imageStoreProvider).prefetch(detail.definition));
       unawaitedStart();
     } on ApiException catch (e) {
       if (state?.activityId != activityId) return;

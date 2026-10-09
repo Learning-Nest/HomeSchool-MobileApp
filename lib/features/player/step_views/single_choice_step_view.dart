@@ -16,13 +16,14 @@ class SingleChoiceStepView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        KidPrompt(step.prompt),
+        KidPrompt(step.prompt, image: step.image),
         const SizedBox(height: 20),
         for (int i = 0; i < step.options.length; i++)
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: KidChoiceButton(
               label: step.options[i].label,
+              image: step.options[i].image,
               index: i,
               selected: answer == step.options[i].id,
               onTap: () => onChanged(step.options[i].id),

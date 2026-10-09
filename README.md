@@ -153,13 +153,17 @@ python3 tools/verify_api_paths.py --openapi ../api-contracts/openapi/openapi.jso
   `api-contracts/docs/client-guide.md`
 - `test/router_guard_test.dart` — the child-mode/auth/update-gate route guard, as a pure function
   (`lib/state/router_guard.dart`), so it's tested without a widget pump
+- `test/image_manifest_test.dart`, `test/image_store_test.dart`, `test/widgets/step_picture_test.dart` — activity pictures:
+  the `images` manifest and per-step/option `image` references, the hash-checked on-device cache (fake HTTP, temp
+  folder), and the step views showing pictures with the text as fallback
 - `test/widgets/` — a couple of widget tests (the PIN pad, one player step view)
 
 ## 8. Architecture map
 
 ```
 lib/
-  core/        HTTP client, token refresh, PIN elevation, offline submit queue, validators, dates — no Flutter imports
+  core/        HTTP client, token refresh, PIN elevation, offline submit queue, validators, dates, the activity picture
+               cache (image_store.dart) — no Flutter imports
   models/      Immutable data classes + fromJson, one file per API resource
   data/        One repository per API area (auth, family, children, catalogue, curriculum, planning,
                progress, pin, config, sessions) — thin wrappers over core/api_client.dart

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:homeschooling/features/player/step_views/step_picture.dart';
+import 'package:homeschooling/models/images.dart';
 import 'package:homeschooling/theme/kid_palette.dart';
 
 /// Makes everything inside readable on the light "paper" cards used in child mode. The dark themes (Space) have
@@ -23,17 +25,29 @@ class OnPaper extends StatelessWidget {
   }
 }
 
-/// The question or instruction at the top of an exercise: big, bold and left-aligned.
+/// The question or instruction at the top of an exercise: big, bold and left-aligned. An optional [image] sits
+/// right under the words.
 class KidPrompt extends StatelessWidget {
-  const KidPrompt(this.text, {super.key});
+  const KidPrompt(this.text, {super.key, this.image});
 
   final String text;
+  final ImageRef? image;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
+    final Text words = Text(
       text,
       style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+    );
+    final ImageRef? pic = image;
+    if (pic == null || (!pic.usable && pic.alt.trim().isEmpty)) return words;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        words,
+        const SizedBox(height: 12),
+        Center(child: pic.usable ? StepPicture(image: pic) : PictureMissingCard(alt: pic.alt)),
+      ],
     );
   }
 }
@@ -61,6 +75,7 @@ class KidChoiceButton extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.multi = false,
+    this.image,
   });
 
   final String label;
@@ -68,6 +83,9 @@ class KidChoiceButton extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
   final bool multi;
+
+  /// A small picture shown between the badge and the words. The words always stay.
+  final ImageRef? image;
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +115,13 @@ class KidChoiceButton extends StatelessWidget {
         children: <Widget>[
           leading,
           const SizedBox(width: 12),
+          if (image?.usable == true) ...<Widget>[
+            SizedBox(
+              width: 76,
+              child: StepPicture(image: image, maxHeight: 64, radius: 12, showAltWhenMissing: false),
+            ),
+            const SizedBox(width: 12),
+          ],
           Expanded(
             child: Text(
               label,

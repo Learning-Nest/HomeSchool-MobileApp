@@ -27,7 +27,7 @@ class MultiChoiceStepView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        KidPrompt(step.prompt),
+        KidPrompt(step.prompt, image: step.image),
         const SizedBox(height: 4),
         const KidHint(Str.multiChoiceHint),
         const SizedBox(height: 16),
@@ -36,6 +36,7 @@ class MultiChoiceStepView extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 12),
             child: KidChoiceButton(
               label: step.options[i].label,
+              image: step.options[i].image,
               index: i,
               multi: true,
               selected: answer.contains(step.options[i].id),
