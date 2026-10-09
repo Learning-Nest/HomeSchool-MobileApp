@@ -87,23 +87,20 @@ sealed class ActivityStep {
 }
 
 final class InstructionStep extends ActivityStep {
-  const InstructionStep({required String id, String? hint, ImageRef? image, required this.text})
-      : super(id: id, type: 'instruction', hint: hint, image: image);
+  const InstructionStep({required super.id, super.hint, super.image, required this.text}) : super(type: 'instruction');
 
   final String text;
 }
 
 final class MediaPromptStep extends ActivityStep {
-  const MediaPromptStep({required String id, String? hint, ImageRef? image, required this.caption, required this.altText})
-      : super(id: id, type: 'media_prompt', hint: hint, image: image);
+  const MediaPromptStep({required super.id, super.hint, super.image, required this.caption, required this.altText}) : super(type: 'media_prompt');
 
   final String caption;
   final String altText;
 }
 
 final class SingleChoiceStep extends ActivityStep {
-  const SingleChoiceStep({required String id, String? hint, ImageRef? image, required this.prompt, required this.options})
-      : super(id: id, type: 'single_choice', hint: hint, image: image);
+  const SingleChoiceStep({required super.id, super.hint, super.image, required this.prompt, required this.options}) : super(type: 'single_choice');
 
   final String prompt;
   final List<Choice> options;
@@ -113,8 +110,7 @@ final class SingleChoiceStep extends ActivityStep {
 }
 
 final class MultiChoiceStep extends ActivityStep {
-  const MultiChoiceStep({required String id, String? hint, ImageRef? image, required this.prompt, required this.options})
-      : super(id: id, type: 'multi_choice', hint: hint, image: image);
+  const MultiChoiceStep({required super.id, super.hint, super.image, required this.prompt, required this.options}) : super(type: 'multi_choice');
 
   final String prompt;
   final List<Choice> options;
@@ -124,8 +120,7 @@ final class MultiChoiceStep extends ActivityStep {
 }
 
 final class NumericInputStep extends ActivityStep {
-  const NumericInputStep({required String id, String? hint, ImageRef? image, required this.prompt})
-      : super(id: id, type: 'numeric_input', hint: hint, image: image);
+  const NumericInputStep({required super.id, super.hint, super.image, required this.prompt}) : super(type: 'numeric_input');
 
   final String prompt;
 
@@ -134,8 +129,7 @@ final class NumericInputStep extends ActivityStep {
 }
 
 final class ShortTextStep extends ActivityStep {
-  const ShortTextStep({required String id, String? hint, ImageRef? image, required this.prompt, required this.maxLen})
-      : super(id: id, type: 'short_text', hint: hint, image: image);
+  const ShortTextStep({required super.id, super.hint, super.image, required this.prompt, required this.maxLen}) : super(type: 'short_text');
 
   final String prompt;
   final int maxLen;
@@ -145,8 +139,7 @@ final class ShortTextStep extends ActivityStep {
 }
 
 final class SequenceOrderStep extends ActivityStep {
-  const SequenceOrderStep({required String id, String? hint, ImageRef? image, required this.prompt, required this.items})
-      : super(id: id, type: 'sequence_order', hint: hint, image: image);
+  const SequenceOrderStep({required super.id, super.hint, super.image, required this.prompt, required this.items}) : super(type: 'sequence_order');
 
   final String prompt;
 
@@ -159,12 +152,13 @@ final class SequenceOrderStep extends ActivityStep {
 
 final class MatchPairsStep extends ActivityStep {
   const MatchPairsStep({
-    required String id,
-    String? hint, ImageRef? image,
+    required super.id,
+    super.hint,
+    super.image,
     required this.prompt,
     required this.left,
     required this.right,
-  }) : super(id: id, type: 'match_pairs', hint: hint, image: image);
+  }) : super(type: 'match_pairs');
 
   final String prompt;
   final List<Choice> left;
@@ -176,12 +170,13 @@ final class MatchPairsStep extends ActivityStep {
 
 final class TimerTaskStep extends ActivityStep {
   const TimerTaskStep({
-    required String id,
-    String? hint, ImageRef? image,
+    required super.id,
+    super.hint,
+    super.image,
     required this.prompt,
     required this.durationSec,
     required this.checklist,
-  }) : super(id: id, type: 'timer_task', hint: hint, image: image);
+  }) : super(type: 'timer_task');
 
   final String prompt;
   final int durationSec;
@@ -192,8 +187,7 @@ final class TimerTaskStep extends ActivityStep {
 }
 
 final class ReflectionStep extends ActivityStep {
-  const ReflectionStep({required String id, String? hint, ImageRef? image, required this.prompt, required this.emojiOptions})
-      : super(id: id, type: 'reflection', hint: hint, image: image);
+  const ReflectionStep({required super.id, super.hint, super.image, required this.prompt, required this.emojiOptions}) : super(type: 'reflection');
 
   final String prompt;
   final List<String> emojiOptions;
@@ -205,20 +199,20 @@ final class ReflectionStep extends ActivityStep {
 /// audio_record and photo_evidence: MVP asks the child to do it with a grown-up (nothing is recorded by the app).
 final class CaptureStep extends ActivityStep {
   const CaptureStep({
-    required String id,
-    required String type,
-    String? hint, ImageRef? image,
+    required super.id,
+    required super.type,
+    super.hint,
+    super.image,
     required this.prompt,
     required this.optional,
-  }) : super(id: id, type: type, hint: hint, image: image);
+  });
 
   final String prompt;
   final bool optional;
 }
 
 final class ParentChecklistStep extends ActivityStep {
-  const ParentChecklistStep({required String id, String? hint, ImageRef? image, required this.prompt, required this.skillCode})
-      : super(id: id, type: 'parent_checklist', hint: hint, image: image);
+  const ParentChecklistStep({required super.id, super.hint, super.image, required this.prompt, required this.skillCode}) : super(type: 'parent_checklist');
 
   final String prompt;
   final String skillCode;
@@ -229,7 +223,7 @@ final class ParentChecklistStep extends ActivityStep {
 
 /// A step type this app version does not know: skipped in the child flow instead of crashing.
 final class UnknownStep extends ActivityStep {
-  const UnknownStep({required String id, required String type}) : super(id: id, type: type);
+  const UnknownStep({required super.id, required super.type});
 
   @override
   bool get childVisible => false;

@@ -67,3 +67,14 @@ class StoreHarness {
     if (directory.existsSync()) directory.deleteSync(recursive: true);
   }
 }
+
+/// An [ImageStore] that answers at once with a fixed file (or none), so widget tests need no real file or network
+/// work inside the test clock.
+class FakeImageStore extends ImageStore {
+  FakeImageStore(this.file);
+
+  final File? file;
+
+  @override
+  Future<File?> fetch(ImageAsset asset) => Future<File?>.value(file);
+}
