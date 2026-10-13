@@ -17,6 +17,7 @@ import 'package:homeschooling/data/pin_repository.dart';
 import 'package:homeschooling/data/planning_repository.dart';
 import 'package:homeschooling/data/progress_repository.dart';
 import 'package:homeschooling/data/session_repository.dart';
+import 'package:homeschooling/data/textbook_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Everything built once at app start and handed down through Riverpod. Assembling this by hand (rather than
@@ -40,6 +41,7 @@ class AppEnvironment {
     required this.pinRepository,
     required this.configRepository,
     required this.sessionRepository,
+    required this.textbookRepository,
   });
 
   final SecureKeyValue secureStore;
@@ -56,6 +58,7 @@ class AppEnvironment {
   final PinRepository pinRepository;
   final ConfigRepository configRepository;
   final SessionRepository sessionRepository;
+  final TextbookRepository textbookRepository;
 
   Future<String> get deviceId => getOrCreateDeviceId(secureStore);
 
@@ -112,6 +115,7 @@ class AppEnvironment {
       pinRepository: PinRepository(authedApi),
       configRepository: ConfigRepository(plainApi),
       sessionRepository: SessionRepository(authedApi),
+      textbookRepository: TextbookRepository(authedApi),
     );
     return env;
   }

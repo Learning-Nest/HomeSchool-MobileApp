@@ -15,6 +15,7 @@ import 'package:homeschooling/features/parent/planner_screen.dart';
 import 'package:homeschooling/features/parent/progress_screen.dart';
 import 'package:homeschooling/features/parent/reviews_screen.dart';
 import 'package:homeschooling/features/parent/settings_screen.dart';
+import 'package:homeschooling/features/parent/textbooks_screen.dart';
 import 'package:homeschooling/features/pin/pin_verify_screen.dart';
 import 'package:homeschooling/features/player/player_screen.dart';
 import 'package:homeschooling/features/profiles/child_form_screen.dart';
@@ -100,6 +101,11 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
       GoRoute(path: '/parent/catalogue', builder: (BuildContext c, GoRouterState s) => const CatalogueScreen()),
       GoRoute(path: '/parent/progress', builder: (BuildContext c, GoRouterState s) => const ProgressScreen()),
       GoRoute(path: '/parent/reviews', builder: (BuildContext c, GoRouterState s) => const ReviewsScreen()),
+      GoRoute(path: '/parent/textbooks', builder: (BuildContext c, GoRouterState s) => const TextbooksScreen()),
+      GoRoute(
+        path: '/parent/textbooks/:bookCode',
+        builder: (BuildContext c, GoRouterState s) => TextbookPathScreen(bookCode: s.pathParameters['bookCode'] ?? ''),
+      ),
       GoRoute(path: '/parent/settings', builder: (BuildContext c, GoRouterState s) => const SettingsScreen()),
     ],
     errorBuilder: (BuildContext c, GoRouterState s) =>

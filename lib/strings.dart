@@ -28,6 +28,7 @@ class Str {
   ];
 
   // ---- Errors (generic, shown when a request fails) ----
+  static const String errorLessonIncomplete = 'The lessons unlocked so far are not finished yet.';
   static const String errorNetwork = "Can't reach the server. Check your connection and try again.";
   static const String errorGeneric = 'Something went wrong. Please try again.';
   static const String errorOtpInvalid = "That code is wrong or has expired. Check it and try again, or resend.";
@@ -326,6 +327,40 @@ class Str {
   static const String consentProductAnalytics = 'Product analytics';
   static const String signOutConfirmTitle = 'Sign out?';
   static const String signOutConfirmBody = "You'll need your email and password to sign in again.";
+
+  // ---- Textbooks ----
+  static const String textbooksTitle = 'Textbooks';
+  static const String textbooksIntro =
+      'Choose the textbook your child follows. Activities then appear in the order of its lessons, and you open the next lesson when your child is ready.';
+  static const String textbooksNone = 'No textbook chosen yet.';
+  static const String textbooksAdd = 'Add a textbook';
+  static const String textbooksBoard = 'Board';
+  static const String textbooksPickBoard = 'Choose a board';
+  static const String textbooksNoBooks = 'There are no textbooks for this board yet.';
+  static const String textbooksOpen = 'See lessons';
+  static const String textbooksLeave = 'Stop using this textbook';
+  static const String textbooksLeaveTitle = 'Stop using this textbook?';
+  static const String textbooksLeaveBody =
+      'Your child will go back to seeing activities that are not tied to a textbook. Their finished activities are kept.';
+  static const String textbooksAdded = 'Textbook added.';
+  static const String lessonLocked = 'Not opened yet';
+  static const String lessonOpen = 'In progress';
+  static const String lessonComplete = 'Finished';
+  static const String lessonNoActivities = 'No activities in this lesson yet.';
+  static const String unlockNextCta = 'Add the next lesson';
+  static const String unlockNextDone = 'All lessons are open.';
+  static const String unlockEarlyTitle = 'Open the next lesson anyway?';
+  static const String unlockEarlyBody =
+      'Some activities in the open lessons are not finished yet. Open the next lesson anyway, for example because you taught it yourself?';
+  static const String unlockEarlyCta = 'Open it anyway';
+  static const String upNextTitle = 'Up next';
+  static const String openBookTooltip = 'Textbooks';
+
+  static String classLabel(String grade) => 'Class $grade';
+  static String lessonsProgress(int done, int total) => '$done of $total lessons finished';
+  static String lessonNumber(int position) => 'Lesson $position';
+  static String scoreLabel(double score) => 'Best score ${(score * 100).round()}%';
+  static String passScoreNote(double pass) => 'An activity counts as finished when it is done with a score of ${(pass * 100).round()}% or more.';
 
   // ---- Update gate ----
   static const String updateRequiredTitle = 'Update required';

@@ -10,10 +10,12 @@ import 'package:homeschooling/features/common/theme_picker.dart';
 import 'package:homeschooling/features/player/step_views/kid_widgets.dart';
 import 'package:homeschooling/models/child.dart';
 import 'package:homeschooling/models/plan.dart';
+import 'package:homeschooling/models/textbooks.dart';
 import 'package:homeschooling/state/child_mode_providers.dart';
 import 'package:homeschooling/state/plan_providers.dart';
 import 'package:homeschooling/state/router_guard.dart';
 import 'package:homeschooling/state/session_player_providers.dart';
+import 'package:homeschooling/state/textbook_providers.dart';
 import 'package:homeschooling/state/theme_providers.dart';
 import 'package:homeschooling/strings.dart';
 import 'package:homeschooling/theme/kid_palette.dart';
@@ -110,15 +112,36 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
         onRetry: () => ref.read(todayProvider.notifier).load(active.child!.id, auth: AuthKind.child),
       );
     }
-    if (today.items.isEmpty) return const _EmptyToday();
+    // Textbook order: what the child can do next in the textbooks a parent chose. Any failure just leaves this
+    // empty, so the screen shows today's plan exactly as before.
+    final String childId = active.child!.id;
+    final List<NextUpItem> upNext = ref.watch(nextUpProvider(childId)).asData?.value ?? const <NextUpItem>[];
+    final Set<String> planned = today.items.map((PlanItem i) => i.activity.id).toSet();
+    final List<NextUpItem> extra = upNext.where((NextUpItem n) => !planned.contains(n.activity.id)).toList();
+    if (today.items.isEmpty && extra.isEmpty) return const _EmptyToday();
 
+    final int planCount = today.items.length;
+    final int total = planCount + (extra.isEmpty ? 0 : extra.length + 1);
     return RefreshIndicator(
-      onRefresh: () => ref.read(todayProvider.notifier).load(active.child!.id, auth: AuthKind.child),
+      onRefresh: () async {
+        ref.invalidate(nextUpProvider(childId));
+        await ref.read(todayProvider.notifier).load(childId, auth: AuthKind.child);
+      },
       child: ListView.builder(
         padding: const EdgeInsets.all(20),
         physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: today.items.length,
-        itemBuilder: (BuildContext context, int index) => _ActivityCard(item: today.items[index], index: index),
+        itemCount: total,
+        itemBuilder: (BuildContext context, int index) {
+          if (index < planCount) return _ActivityCard(item: today.items[index], index: index);
+          final int k = index - planCount;
+          if (k == 0) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(Str.upNextTitle, style: Theme.of(context).textTheme.titleLarge),
+            );
+          }
+          return _NextUpCard(item: extra[k - 1], index: planCount + k);
+        },
       ),
     );
   }
@@ -229,5 +252,73 @@ class _ActivityCard extends ConsumerWidget {
           planItemId: item.id,
         );
     context.push('${Routes.player}/${item.activity.id}');
+  }
+}
+
+/// An activity from the child's textbook path (no parent plan item behind it).
+class _NextUpCard extends ConsumerWidget {
+  const _NextUpCard({required this.item, required this.index});
+
+  final NextUpItem item;
+  final int index;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final KidPalette p = KidPalette.of(context);
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      color: p.paper,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _start(context, ref),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: OnPaper(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Container(
+                  width: 56,
+                  height: 56,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(color: p.tile(index), shape: BoxShape.circle),
+                  child: Text(subjectEmoji(item.activity.subjectCode), style: const TextStyle(fontSize: 28)),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        item.activity.title,
+                        key: ValueKey<String>('next-up-title-${item.activity.id}'),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(color: p.tileText, fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 2),
+                      Text('${item.activity.durationMin} min'),
+                      const SizedBox(height: 10),
+                      FilledButton(
+                        key: ValueKey<String>('next-up-start-${item.activity.id}'),
+                        onPressed: () => _start(context, ref),
+                        child: Text(item.attempted ? Str.retry : Str.startActivity),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _start(BuildContext context, WidgetRef ref) async {
+    final Child? child = ref.read(activeChildProvider).child;
+    if (child == null) return;
+    ref.read(playerProvider.notifier).open(childId: child.id, summary: item.activity);
+    await context.push('${Routes.player}/${item.activity.id}');
+    // Back from the player: the finished activity should drop off this list.
+    if (context.mounted) ref.invalidate(nextUpProvider(child.id));
   }
 }

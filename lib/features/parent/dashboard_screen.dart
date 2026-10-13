@@ -74,6 +74,15 @@ class _DashboardBody extends ConsumerWidget {
             for (final Recommendation r in d.recommendations)
               ListTile(leading: const Icon(Icons.auto_awesome), title: Text(r.activity.title), subtitle: Text(r.reason)),
             const SizedBox(height: 16),
+            ListTile(
+              key: const ValueKey<String>('dashboard-textbooks'),
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.auto_stories_outlined),
+              title: const Text(Str.textbooksTitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/parent/textbooks'),
+            ),
+            const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[

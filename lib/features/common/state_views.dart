@@ -20,6 +20,8 @@ String errorText(ApiException e) {
       return Str.errorValidation;
     case 'pin_already_set':
       return Str.errorPinAlreadySet;
+    case 'lesson_incomplete':
+      return Str.errorLessonIncomplete;
     case 'otp_invalid':
       return Str.errorOtpInvalid;
     case 'invalid_credentials':

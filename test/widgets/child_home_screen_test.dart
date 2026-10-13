@@ -9,8 +9,10 @@ import 'package:homeschooling/features/player/step_views/kid_widgets.dart';
 import 'package:homeschooling/models/activity.dart';
 import 'package:homeschooling/models/child.dart';
 import 'package:homeschooling/models/plan.dart';
+import 'package:homeschooling/models/textbooks.dart';
 import 'package:homeschooling/state/child_mode_providers.dart';
 import 'package:homeschooling/state/plan_providers.dart';
+import 'package:homeschooling/state/textbook_providers.dart';
 import 'package:homeschooling/state/theme_providers.dart';
 import 'package:homeschooling/strings.dart';
 import 'package:homeschooling/theme.dart';
@@ -112,6 +114,7 @@ void main() {
                     _item('todo1', 'Phonics fun with sounds', 'planned'),
                   ])),
               themeSettingsProvider.overrideWith(() => _FakeThemes(option.id)),
+              nextUpProvider.overrideWith((Ref ref, String childId) async => <NextUpItem>[]),
             ],
             child: const MaterialApp(home: ChildHomeScreen()),
           ),
@@ -149,6 +152,68 @@ void main() {
         expect(_contrast(minutes!, palette.paper), greaterThanOrEqualTo(4.5));
       });
     }
+  });
+
+  group('Child home: up next (textbook order)', () {
+    NextUpItem next(String id, String title, {bool attempted = false}) => NextUpItem(
+          activity: ActivitySummary(
+            id: id,
+            slug: id,
+            title: title,
+            subjectCode: 'ENG',
+            levelFrom: 'L1',
+            levelTo: 'L2',
+            durationMin: 10,
+            materials: const <String>[],
+            interestTags: const <String>[],
+            version: 1,
+          ),
+          bookCode: 'cbse-1-english-marigold',
+          lessonPosition: 1,
+          lessonTitle: 'A Happy Child',
+          attempted: attempted,
+        );
+
+    Future<void> pump(WidgetTester tester, List<PlanItem> plan, List<NextUpItem> upNext) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            activeChildProvider.overrideWith(_FakeActiveChild.new),
+            todayProvider.overrideWith(() => _FakeToday(plan)),
+            themeSettingsProvider.overrideWith(() => _FakeThemes('space')),
+            nextUpProvider.overrideWith((Ref ref, String childId) async => upNext),
+          ],
+          child: const MaterialApp(home: ChildHomeScreen()),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+    }
+
+    testWidgets('lists textbook activities after today\'s plan, without repeating planned ones', (WidgetTester tester) async {
+      await pump(
+        tester,
+        <PlanItem>[_item('p1', 'Planned story', 'planned')],
+        <NextUpItem>[next('act-p1', 'Planned story'), next('n1', 'Alphabet A to F'), next('n2', 'Sounds', attempted: true)],
+      );
+      expect(find.text(Str.upNextTitle), findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('next-up-title-n1')), findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('next-up-title-act-p1')), findsNothing);
+      expect(find.byKey(const ValueKey<String>('next-up-start-n1')), findsOneWidget);
+      expect(find.descendant(of: find.byKey(const ValueKey<String>('next-up-start-n2')), matching: find.text(Str.retry)), findsOneWidget);
+    });
+
+    testWidgets('shows them even when nothing is planned for today', (WidgetTester tester) async {
+      await pump(tester, const <PlanItem>[], <NextUpItem>[next('n1', 'Alphabet A to F')]);
+      expect(find.text(Str.noActivitiesToday), findsNothing);
+      expect(find.byKey(const ValueKey<String>('next-up-title-n1')), findsOneWidget);
+    });
+
+    testWidgets('shows the usual empty message when there is neither a plan nor a textbook', (WidgetTester tester) async {
+      await pump(tester, const <PlanItem>[], const <NextUpItem>[]);
+      expect(find.text(Str.noActivitiesToday), findsOneWidget);
+      expect(find.text(Str.upNextTitle), findsNothing);
+    });
   });
 
   group('OnPaper', () {

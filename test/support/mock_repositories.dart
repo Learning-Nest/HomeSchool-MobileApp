@@ -10,6 +10,7 @@ import 'package:homeschooling/data/pin_repository.dart';
 import 'package:homeschooling/data/planning_repository.dart';
 import 'package:homeschooling/data/progress_repository.dart';
 import 'package:homeschooling/data/session_repository.dart';
+import 'package:homeschooling/data/textbook_repository.dart';
 import 'package:homeschooling/state/environment.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -35,6 +36,8 @@ class MockConfigRepository extends Mock implements ConfigRepository {}
 
 class MockSessionRepository extends Mock implements SessionRepository {}
 
+class MockTextbookRepository extends Mock implements TextbookRepository {}
+
 /// Everything a test needs to build an [AppEnvironment] with every repository mocked, plus the mocks
 /// themselves to stub/verify against.
 class TestEnvironment {
@@ -48,7 +51,8 @@ class TestEnvironment {
         progress = MockProgressRepository(),
         pin = MockPinRepository(),
         config = MockConfigRepository(),
-        session = MockSessionRepository();
+        session = MockSessionRepository(),
+        textbook = MockTextbookRepository();
 
   final MockAuthRepository auth;
   final MockFamilyRepository family;
@@ -60,6 +64,7 @@ class TestEnvironment {
   final MockPinRepository pin;
   final MockConfigRepository config;
   final MockSessionRepository session;
+  final MockTextbookRepository textbook;
 
   AppEnvironment build() {
     return AppEnvironment(
@@ -77,6 +82,7 @@ class TestEnvironment {
       pinRepository: pin,
       configRepository: config,
       sessionRepository: session,
+      textbookRepository: textbook,
     );
   }
 }
